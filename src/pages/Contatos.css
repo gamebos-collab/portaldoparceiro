@@ -1,0 +1,131 @@
+.contatos-wrapper {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 32px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 22, 69, 0.1);
+}
+
+.contatos-info {
+  text-align: center;
+  font-size: 1.08rem;
+  color: #666;
+  margin-bottom: 58px; /* Espaço maior abaixo do título */
+  font-style: italic;
+}
+
+.contatos-title {
+  text-align: center;
+  color: #023cb9;
+  font-size: 2rem;
+  margin-bottom: 28px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.contatos-filtros {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 220px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 12px 10px 34px;
+  border: 1px solid #b5c6d6;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.2s;
+  background: #f8fafc;
+}
+
+.input-group input:focus {
+  border-color: #023cb9;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(2, 60, 185, 0.07);
+}
+
+.input-icon {
+  position: absolute;
+  left: 8px;
+  font-size: 17px;
+  color: #8da2b7;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.contatos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  margin: 0 auto;
+  background: #f8fafc;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(2, 60, 185, 0.05);
+}
+
+.contatos-table thead tr {
+  background: linear-gradient(90deg, #023cb9 0%, #006fff 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.contatos-table th,
+.contatos-table td {
+  padding: 10px 14px;
+  border: none;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.contatos-table tbody tr:nth-child(even) {
+  background: #eaf0f6;
+}
+
+.contatos-table tbody tr:hover {
+  background: #d9e7fa;
+  transition: background 0.18s;
+}
+
+.email-link {
+  color: #023cb9;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.email-link:hover {
+  text-decoration: underline;
+  color: #006fff;
+}
+
+.table-icon {
+  font-size: 16px;
+  margin-right: 5px;
+  color: #023cb9;
+}
+
+.contatos-msg {
+  text-align: center;
+  margin-top: 30px;
+  font-style: italic;
+  color: #7a7a7a;
+  font-size: 1.1rem;
+}

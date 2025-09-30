@@ -1,0 +1,11 @@
+.footer {
+  background-color: #023cb9;
+  color: rgb(255, 255, 255);
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
