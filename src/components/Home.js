@@ -25,6 +25,12 @@ export default function Home() {
     setIsLoading(true);
     setErroLogin("");
 
+    if (!formData.usuario || !formData.senha) {
+      setErroLogin("Preencha todos os campos.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(
         "https://portalbackend-i9xy.onrender.com/api/login",
@@ -38,7 +44,7 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok && data.usuario) {
-        login(data.usuario);
+        login(data.usuario); // ou login(data.usuario.usuario)
         navigate("/dashboard");
       } else {
         setErroLogin(data.message || "Usuário ou senha inválidos.");
