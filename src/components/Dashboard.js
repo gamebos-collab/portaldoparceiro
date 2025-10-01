@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import MapaBrasil from "./MapaBrasil";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import "./Dashboard.css";
 
 export default function Dashboard() {
@@ -10,6 +18,7 @@ export default function Dashboard() {
     useState(null);
   const [erro, setErro] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState("visao");
 
   useEffect(() => {
     const carregarExcel = async () => {
@@ -23,6 +32,7 @@ export default function Dashboard() {
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
+
         const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
         const dadosLimpos = json.map((item) => ({
           Estado: item.Estado?.toString().trim(),
@@ -64,20 +74,19 @@ export default function Dashboard() {
       item.Centralizadora === centralizadoraSelecionada
   );
 
-  // Ao clicar no estado, abre popup e reseta centralizadora
   const handleEstadoSelecionado = (estado) => {
     setEstadoSelecionado(estado);
     setCentralizadoraSelecionada(null);
     setShowPopup(true);
   };
 
-  // Fecha popup
   const closePopup = useCallback(() => {
     setShowPopup(false);
-    // Mantém estadoSelecionado para continuar exibindo a área à direita caso a centralizadora já esteja selecionada
+    setCentralizadoraSelecionada(null);
+    setEstadoSelecionado(null);
+    setAbaAtiva("visao");
   }, []);
 
-  // ESC fecha popup
   useEffect(() => {
     if (!showPopup) return;
     const handleEsc = (e) => {
@@ -87,20 +96,37 @@ export default function Dashboard() {
     return () => document.removeEventListener("keydown", handleEsc);
   }, [showPopup, closePopup]);
 
+  const exportarXLSX = () => {
+    const worksheetData = [
+      ["Parceiro", "BOS"],
+      ...dadosFiltrados.map((item) => [item.Parceiro, item.BOS]),
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+
+    const xlsxBlob = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const blob = new Blob([xlsxBlob], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `dados_${centralizadoraSelecionada}.xlsx`;
+    link.click();
+  };
+
   return (
     <div className="dashboard-page">
-      <div className="dashboard-top">
-        <h1>Portal do Parceiro</h1>
-      </div>
+      <div className="dashboard-top"></div>
       <div className="dashboard-bottom">
-        <div
-          className="mapa-container"
-          style={{ position: "relative", display: "flex" }}
-        >
-          <div
-            className="mapa-conteudo"
-            style={{ position: "relative", width: "40vw", minWidth: 350 }}
-          >
+        <div className="mapa-container" style={{ position: "relative" }}>
+          <div className="mapa-conteudo">
             <div className="mapa-visual">
               <MapaBrasil onEstadoSelecionado={handleEstadoSelecionado} />
               {showPopup && (
@@ -115,7 +141,7 @@ export default function Dashboard() {
                       ✖
                     </button>
                     {erro && <p style={{ color: "red" }}>{erro}</p>}
-                    {estadoSelecionado ? (
+                    {estadoSelecionado && (
                       <div>
                         <h2>{estadoSelecionado}</h2>
                         <h3>Centralizadoras:</h3>
@@ -131,7 +157,7 @@ export default function Dashboard() {
                                 }`}
                                 onClick={() => {
                                   setCentralizadoraSelecionada(cent);
-                                  closePopup();
+                                  setShowPopup(false);
                                 }}
                               >
                                 {cent}
@@ -143,50 +169,80 @@ export default function Dashboard() {
                             Nenhuma centralizadora encontrada para este estado.
                           </p>
                         )}
-                        <button className="popup-back" onClick={closePopup}>
-                          Voltar
-                        </button>
                         <p
                           style={{ fontSize: 12, color: "#bbb", marginTop: 6 }}
                         >
                           Pressione ESC para fechar
                         </p>
                       </div>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               )}
             </div>
-          </div>
-          {/* Lado direito livre para exibir os detalhes */}
-          <div className="mapa-dados" style={{ flex: 1, padding: 32 }}>
-            {estadoSelecionado && centralizadoraSelecionada ? (
-              <div className="dados-centralizadora">
-                <h2>{estadoSelecionado}</h2>
-                <h3>Centralizadora: {centralizadoraSelecionada}</h3>
-                {dadosFiltrados.length > 0 ? (
-                  <div>
-                    <h4>Parceiros em {centralizadoraSelecionada}</h4>
-                    <ul>
-                      {dadosFiltrados.map((item, index) => (
-                        <li key={index}>
-                          {item.Parceiro} — B.Os: {item.BOS}
-                        </li>
-                      ))}
-                    </ul>
+
+            {/* Painel lateral com abas */}
+            <div className="mapa-dados">
+              {centralizadoraSelecionada && dadosFiltrados.length > 0 && (
+                <div className="painel-lateral">
+                  <div className="abas">
+                    <button
+                      className={abaAtiva === "visao" ? "aba ativa" : "aba"}
+                      onClick={() => setAbaAtiva("visao")}
+                    >
+                      Visão Geral
+                    </button>
+                    <button
+                      className={abaAtiva === "grafico" ? "aba ativa" : "aba"}
+                      onClick={() => setAbaAtiva("grafico")}
+                    >
+                      Gráfico
+                    </button>
+                    <button
+                      className={abaAtiva === "exportar" ? "aba ativa" : "aba"}
+                      onClick={() => setAbaAtiva("exportar")}
+                    >
+                      Exportar
+                    </button>
                   </div>
-                ) : (
-                  <p style={{ color: "#fff" }}>
-                    Nenhum parceiro encontrado para esta centralizadora.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p style={{ color: "#888" }}>
-                Selecione um estado no mapa e escolha uma centralizadora para
-                ver os parceiros.
-              </p>
-            )}
+
+                  <div className="conteudo-aba">
+                    {abaAtiva === "visao" && (
+                      <div>
+                        <h4>Parceiros em {centralizadoraSelecionada}</h4>
+                        <ul>
+                          {dadosFiltrados.map((item, index) => (
+                            <li key={index}>
+                              {item.Parceiro} — B.Os: {item.BOS}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {abaAtiva === "grafico" && (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={dadosFiltrados}>
+                          <XAxis dataKey="Parceiro" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="BOS" fill="#3f51b5" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+
+                    {abaAtiva === "exportar" && (
+                      <div>
+                        <p>Exportar dados da centralizadora para CSV:</p>
+                        <button className="exportar-btn" onClick={exportarXLSX}>
+                          Baixar XLSX
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

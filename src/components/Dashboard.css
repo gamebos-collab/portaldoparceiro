@@ -1,14 +1,14 @@
 .dashboard-bottom {
   padding: 40px;
-  background-color: #0832db;
+  background-color: #000c3b;
 }
 
 .mapa-container {
   width: 100%;
   min-height: 600px;
-  background: #0832db;
+  background: #000c3b;
   border-radius: 14px;
-  box-shadow: 0 6px 32px rgba(3, 142, 248, 0.6);
+  box-shadow: 0 6px 32px rgba(248, 3, 3, 0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,4 +130,48 @@
   background: #ffe200;
   color: #18304b;
   font-weight: bold;
+}
+.painel-lateral {
+  background: #072d4d;
+  border-radius: 12px;
+  padding: 24px;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.abas {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.aba {
+  background: #fff;
+  color: #072d4d;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.aba.ativa {
+  background: #ffe200;
+  color: #18304b;
+}
+
+.conteudo-aba ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+}
+
+.exportar-btn {
+  background: #ffe200;
+  color: #18304b;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
 }

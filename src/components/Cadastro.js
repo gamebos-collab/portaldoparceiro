@@ -17,20 +17,31 @@ export default function Cadastro() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/cadastro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        "https://portalbackend-3fzy.onrender.com/api/cadastro",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await res.json();
       if (!res.ok) {
         alert(`Erro: ${data.message || "Erro ao cadastrar."}`);
       } else {
-        alert(data.message);
+        alert(data.message || "Cadastro realizado com sucesso!");
+        setFormData({
+          nome: "",
+          usuario: "",
+          centralizadoraresp: "",
+          email: "",
+          senha: "",
+        });
       }
     } catch (err) {
       alert("Erro ao cadastrar.");
+      console.error("Erro no cadastro:", err);
     }
   };
 
