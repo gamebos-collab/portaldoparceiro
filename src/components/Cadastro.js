@@ -17,14 +17,11 @@ export default function Cadastro() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(
-        "https://portalbackend-3fzy.onrender.com/api/cadastro",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      const res = await fetch("https://portalbackend-i9xy.onrender.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
       const data = await res.json();
       if (!res.ok) {
