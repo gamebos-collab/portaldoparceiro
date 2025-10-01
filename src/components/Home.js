@@ -26,11 +26,14 @@ export default function Home() {
     setErroLogin("");
 
     try {
-      const res = await fetch("https://portalbackend-i9xy.onrender.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        "https://portalbackend-i9xy.onrender.com/api/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await res.json();
 
