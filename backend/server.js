@@ -1,5 +1,3 @@
-const cors = require("cors");
-app.use(cors());
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -8,6 +6,11 @@ const bcrypt = require("bcrypt");
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Rota de teste
+app.get("/", (req, res) => {
+  res.send("✅ Backend está rodando!");
+});
 
 // Conexão com MongoDB Atlas
 mongoose
@@ -32,7 +35,6 @@ const Usuario = mongoose.model("Usuario", usuarioSchema);
 
 // Rota de cadastro
 app.post("/api/cadastro", async (req, res) => {
-  console.log("🔎 Body recebido:", req.body);
   const { nome, usuario, centralizadoraresp, email, senha } = req.body;
 
   try {
@@ -51,10 +53,8 @@ app.post("/api/cadastro", async (req, res) => {
     });
 
     await novoUsuario.save();
-    console.log("✅ Usuário salvo:", novoUsuario);
     res.status(201).json({ message: "Usuário cadastrado com sucesso!" });
   } catch (err) {
-    console.error("❌ Erro no cadastro:", err.message);
     res
       .status(500)
       .json({ message: "Erro ao cadastrar.", detalhe: err.message });
@@ -76,13 +76,12 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ message: "Senha incorreta." });
     }
 
-    console.log("✅ Login bem-sucedido:", usuarioEncontrado.usuario);
+    const { senha: _, ...usuarioSemSenha } = usuarioEncontrado.toObject();
     res.status(200).json({
       message: "Login realizado com sucesso!",
-      usuario: usuarioEncontrado,
+      usuario: usuarioSemSenha,
     });
   } catch (err) {
-    console.error("❌ Erro no login:", err.message);
     res
       .status(500)
       .json({ message: "Erro ao realizar login.", detalhe: err.message });
