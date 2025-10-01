@@ -1,13 +1,14 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import "./Header.css";
 
 export default function Header() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [hoveredSubmenu, setHoveredSubmenu] = useState(null);
-
-  const usuarioLogado = localStorage.getItem("usuarioLogado");
+  const { usuarioLogado, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const menuItems = [];
 
@@ -42,6 +43,11 @@ export default function Header() {
       ],
     }
   );
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header className="header">
@@ -91,13 +97,7 @@ export default function Header() {
         </ul>
 
         {usuarioLogado && (
-          <button
-            className="logout-button"
-            onClick={() => {
-              localStorage.removeItem("usuarioLogado");
-              window.location.href = "/";
-            }}
-          >
+          <button className="logout-button" onClick={handleLogout}>
             Sair
           </button>
         )}

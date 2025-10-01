@@ -1,23 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import bbmBackground from "../assets/bbm.png";
 import Cadastro from "./Cadastro";
 import "./Home.css";
 
 export default function Home() {
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [formData, setFormData] = useState({
-    usuario: "",
-    senha: "",
-  });
+  const [formData, setFormData] = useState({ usuario: "", senha: "" });
   const [erroLogin, setErroLogin] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") handleLogin();
+  };
+
   const handleLogin = async () => {
+    setIsLoading(true);
+    setErroLogin("");
+
     try {
       const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
@@ -27,15 +34,17 @@ export default function Home() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setErroLogin(data.message || "Erro ao realizar login.");
-      } else {
-        localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
+      if (res.ok && data.usuario) {
+        login(data.usuario);
         navigate("/dashboard");
+      } else {
+        setErroLogin(data.message || "Usuário ou senha inválidos.");
+        setIsLoading(false);
       }
     } catch (err) {
       console.error("❌ Erro no login:", err);
       setErroLogin("Erro ao conectar com o servidor.");
+      setIsLoading(false);
     }
   };
 
@@ -70,6 +79,7 @@ export default function Home() {
             placeholder="Usuário"
             value={formData.usuario}
             onChange={handleChange}
+            onKeyDown={handleKeyPress}
             required
           />
           <input
@@ -78,10 +88,15 @@ export default function Home() {
             placeholder="Senha"
             value={formData.senha}
             onChange={handleChange}
+            onKeyDown={handleKeyPress}
             required
           />
-          <button className="login-button" onClick={handleLogin}>
-            Entrar
+          <button
+            className="login-button"
+            onClick={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? <div className="spinner"></div> : "Entrar"}
           </button>
           <span className="cadastro-link" onClick={() => setMostrarModal(true)}>
             Faça seu cadastro

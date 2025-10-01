@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { AuthProvider, AuthContext } from "./context/AuthContext";
 import TopBar from "./components/TopBar";
 import Header from "./components/Header";
 import Home from "./components/Home";
@@ -21,38 +22,41 @@ import Cadastro from "./components/Cadastro";
 import Dashboard from "./components/Dashboard";
 import "./App.css";
 
-function App() {
-  const usuarioLogado = localStorage.getItem("usuarioLogado");
+function AppRoutes() {
+  const { usuarioLogado } = React.useContext(AuthContext);
 
   return (
-    <Router>
-      <TopBar />
-      <Header />
-      <div className="main-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
-          <Route
-            path="/dashboard"
-            element={
-              usuarioLogado ? <Dashboard /> : <Navigate to="/" replace />
-            }
-          />
-          <Route path="/comunicacao/noticias" element={<Noticias />} />
-          <Route path="/comunicacao/contatos" element={<Contatos />} />
-          <Route
-            path="/informacoes/politica"
-            element={<Politicadeparceiros />}
-          />
-          <Route path="/informacoes/Documentos" element={<Documentos />} />
-          <Route path="/informacoes/Faq" element={<Faq />} />
-          <Route path="/institucional/sobre" element={<Sobreoportal />} />
-          <Route path="/institucional/Quemsomos" element={<Quemsomos />} />
-        </Routes>
-      </div>
-      <Footer />
-    </Router>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/cadastro" element={<Cadastro />} />
+      <Route
+        path="/dashboard"
+        element={usuarioLogado ? <Dashboard /> : <Navigate to="/" replace />}
+      />
+      <Route path="/comunicacao/noticias" element={<Noticias />} />
+      <Route path="/comunicacao/contatos" element={<Contatos />} />
+      <Route path="/informacoes/politica" element={<Politicadeparceiros />} />
+      <Route path="/informacoes/Documentos" element={<Documentos />} />
+      <Route path="/informacoes/Faq" element={<Faq />} />
+      <Route path="/institucional/sobre" element={<Sobreoportal />} />
+      <Route path="/institucional/Quemsomos" element={<Quemsomos />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <TopBar />
+        <Header />
+        <div className="main-content">
+          <AppRoutes />
+        </div>
+        <Footer />
+      </Router>
+    </AuthProvider>
   );
 }
 
