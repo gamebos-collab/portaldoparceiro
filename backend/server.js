@@ -9,9 +9,7 @@ app.use(express.json());
 
 // Conexão com MongoDB Atlas
 mongoose
-  .connect(
-    "mongodb+srv://portaldoparceiro:Jesusm12@cluster0.xxhy479.mongodb.net/usuarios"
-  )
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Conectado ao MongoDB Atlas"))
   .catch((err) => console.error("❌ Erro ao conectar ao MongoDB:", err));
 
@@ -77,12 +75,10 @@ app.post("/api/login", async (req, res) => {
     }
 
     console.log("✅ Login bem-sucedido:", usuarioEncontrado.usuario);
-    res
-      .status(200)
-      .json({
-        message: "Login realizado com sucesso!",
-        usuario: usuarioEncontrado,
-      });
+    res.status(200).json({
+      message: "Login realizado com sucesso!",
+      usuario: usuarioEncontrado,
+    });
   } catch (err) {
     console.error("❌ Erro no login:", err.message);
     res
@@ -92,5 +88,7 @@ app.post("/api/login", async (req, res) => {
 });
 
 // Inicializa o servidor
-const PORT = 5000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`🚀 Servidor rodando na porta ${PORT}`)
+);
