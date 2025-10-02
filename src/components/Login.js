@@ -1,59 +1,102 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
-export default function Login() {
-  const [formData, setFormData] = useState({ usuario: "", senha: "" });
-  const navigate = useNavigate();
+const app = express();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+// ✅ CORS configurado para permitir acesso apenas do seu frontend Vercel
+app.use(
+  cors({
+    origin: "https://portaldoparceiro-nine.vercel.app",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
-  const handleLogin = async () => {
-    try {
-      const res = await fetch(
-        "https://portalbackend-i9xy.onrender.com/api/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+app.use(express.json());
 
-      const data = await res.json();
+// Rota de teste
+app.get("/", (req, res) => {
+  res.send("✅ Backend está rodando!");
+});
 
-      if (!res.ok) {
-        alert(`Erro: ${data.message || "Usuário ou senha inválidos."}`);
-      } else {
-        localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      console.error("Erro ao realizar login:", err);
-      alert("Erro ao conectar com o servidor.");
+// Conexão com MongoDB Atlas
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ Conectado ao MongoDB Atlas"))
+  .catch((err) => console.error("❌ Erro ao conectar ao MongoDB:", err));
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Erro de conexão com MongoDB:", err);
+});
+
+// Modelo de usuário
+const usuarioSchema = new mongoose.Schema({
+  nome: { type: String, required: true },
+  usuario: { type: String, required: true },
+  centralizadoraresp: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  senha: { type: String, required: true },
+});
+
+const Usuario = mongoose.model("Usuario", usuarioSchema);
+
+// Rota de cadastro
+app.post("/api/cadastro", async (req, res) => {
+  const { nome, usuario, centralizadoraresp, email, senha } = req.body;
+
+  try {
+    const usuarioExistente = await Usuario.findOne({ email });
+    if (usuarioExistente) {
+      return res.status(400).json({ message: "E-mail já cadastrado." });
     }
-  };
 
-  return (
-    <div className="login-area">
-      <h2>Login</h2>
-      <input
-        type="text"
-        name="usuario"
-        placeholder="Usuário"
-        value={formData.usuario}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="password"
-        name="senha"
-        placeholder="Senha"
-        value={formData.senha}
-        onChange={handleChange}
-        required
-      />
-      <button onClick={handleLogin}>Entrar</button>
-    </div>
-  );
-}
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const novoUsuario = new Usuario({
+      nome,
+      usuario,
+      centralizadoraresp,
+      email,
+      senha: senhaHash,
+    });
+
+    await novoUsuario.save();
+    res.status(201).json({ message: "Usuário cadastrado com sucesso!" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Erro ao cadastrar.", detalhe: err.message });
+  }
+});
+
+// Rota de login via usuário
+app.post("/api/login", async (req, res) => {
+  const { usuario, senha } = req.body;
+
+  try {
+    const usuarioEncontrado = await Usuario.findOne({ usuario });
+    if (!usuarioEncontrado) {
+      return res.status(401).json({ message: "Usuário não encontrado." });
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuarioEncontrado.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ message: "Senha incorreta." });
+    }
+
+    const { senha: _, ...usuarioSemSenha } = usuarioEncontrado.toObject();
+    res.status(200).json({
+      message: "Login realizado com sucesso!",
+      usuario: usuarioSemSenha,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Erro ao realizar login.", detalhe: err.message });
+  }
+});
+
+// ✅ Inicializa o servidor corretamente para Render
+const PORT = process.env.PORT;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
