@@ -9,7 +9,7 @@ In the project directory, you can run:
 ### `npm start`
 
 Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open [https://portalbackend-i9xy.onrender.com](https://portalbackend-i9xy.onrender.com) to view it in your browser.
 
 > ⚠ **Note:** This is for local development only. In production (e.g. Vercel), the app will be served from a public URL and should communicate with your backend via its public endpoint:
 > `https://portalbackend-i9xy.onrender.com`
