@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const fetch = require("node-fetch"); // <--- Adicione esta linha!
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -97,6 +97,8 @@ app.post("/api/login", async (req, res) => {
       .json({ message: "Erro ao realizar login.", detalhe: err.message });
   }
 });
+
+// Mantém o Render ativo
 setInterval(() => {
   fetch("https://portalbackend-i9xy.onrender.com/");
 }, 1000 * 60 * 5); // a cada 5 minutos
