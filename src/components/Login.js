@@ -11,22 +11,26 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        "https://portalbackend-i9xy.onrender.com/api/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(`Erro: ${data.message}`);
+        alert(`Erro: ${data.message || "Usuário ou senha inválidos."}`);
       } else {
         localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-        navigate("/dashboard"); // ✅ redireciona corretamente
+        navigate("/dashboard");
       }
     } catch (err) {
-      alert("Erro ao realizar login.");
+      console.error("Erro ao realizar login:", err);
+      alert("Erro ao conectar com o servidor.");
     }
   };
 
@@ -39,6 +43,7 @@ export default function Login() {
         placeholder="Usuário"
         value={formData.usuario}
         onChange={handleChange}
+        required
       />
       <input
         type="password"
@@ -46,6 +51,7 @@ export default function Login() {
         placeholder="Senha"
         value={formData.senha}
         onChange={handleChange}
+        required
       />
       <button onClick={handleLogin}>Entrar</button>
     </div>
