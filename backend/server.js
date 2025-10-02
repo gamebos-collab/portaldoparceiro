@@ -4,7 +4,16 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const app = express();
-app.use(cors());
+
+// ✅ CORS configurado para permitir acesso apenas do seu frontend Vercel
+app.use(
+  cors({
+    origin: "https://portaldoparceiro-nine.vercel.app",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(express.json());
 
 // Rota de teste
