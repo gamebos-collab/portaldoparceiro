@@ -96,6 +96,9 @@ app.post("/api/login", async (req, res) => {
       .json({ message: "Erro ao realizar login.", detalhe: err.message });
   }
 });
+setInterval(() => {
+  fetch("https://portalbackend-i9xy.onrender.com/");
+}, 1000 * 60 * 5); // a cada 5 minutos
 
 // ✅ Inicializa o servidor corretamente para Render
 const PORT = process.env.PORT;
