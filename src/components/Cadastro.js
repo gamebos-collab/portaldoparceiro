@@ -18,7 +18,7 @@ export default function Cadastro() {
     e.preventDefault();
     try {
       const res = await fetch(
-        "https://portalbackend-3fzy.onrender.com/api/cadastro",
+        "https://portalbackend-i9xy.onrender.com/api/cadastro",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

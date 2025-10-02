@@ -44,15 +44,15 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok && data.usuario) {
-        login(data.usuario); // ou login(data.usuario.usuario)
+        login(data.usuario);
         navigate("/dashboard");
       } else {
         setErroLogin(data.message || "Usuário ou senha inválidos.");
-        setIsLoading(false);
       }
     } catch (err) {
       console.error("❌ Erro no login:", err);
       setErroLogin("Erro ao conectar com o servidor.");
+    } finally {
       setIsLoading(false);
     }
   };
