@@ -5,6 +5,18 @@ import "leaflet/dist/leaflet.css";
 import brasilEstados from "../data/brasil-estados.json";
 import "./MapaBrasil.css";
 
+// Mapeia cada estado para as centralizadoras correspondentes
+const estadoCentralizadoras = {
+  "Rio Grande do Sul": ["CXS", "POA", "SMA"],
+  "Santa Catarina": ["BLU", "JVL", "FLN"],
+  "Minas Gerais": ["PPY", "BHZ"],
+  Paraná: ["CWB", "LDA", "CAS"],
+  "São Paulo": ["SOR", "RIP", "SUM", "SÃO", "GRU", "BAU", "CPN"],
+  "Espírito Santo": ["VIX"],
+  Ceará: ["CRA"],
+  // Adicione outros estados se necessário
+};
+
 export default function MapaBrasil({ onEstadoSelecionado }) {
   const estiloPadrao = {
     fillColor: "#acacacff",
@@ -29,7 +41,8 @@ export default function MapaBrasil({ onEstadoSelecionado }) {
       mouseover: () => layer.setStyle(estiloHover),
       mouseout: () => layer.setStyle(estiloPadrao),
       click: () => {
-        if (onEstadoSelecionado) {
+        if (onEstadoSelecionado && estadoCentralizadoras[estado]) {
+          // Ao clicar, envia o nome do estado para o componente pai
           onEstadoSelecionado(estado);
         }
       },
@@ -55,7 +68,7 @@ export default function MapaBrasil({ onEstadoSelecionado }) {
         scrollWheelZoom={false}
         zoomControl={false}
         doubleClickZoom={false}
-        dragging={false} // 🔒 Garante que o mapa não seja arrastável
+        dragging={false}
       >
         <GeoJSON data={brasilEstados} onEachFeature={onEachFeature} />
         <AjustarMapaAoBrasil />

@@ -69,10 +69,152 @@
 }
 
 .leaflet-popup-tip {
+  margin-top: -5px; /* ajusta a setinha do popup */
   z-index: 10000 !important;
 }
 
 /* 🔧 Remove o logo/crédito padrão do Leaflet */
 .leaflet-control-attribution {
   display: none !important;
+}
+
+.parceiros-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+
+.parceiro-card {
+  background: linear-gradient(120deg, #072d4d 60%, #18304b 100%);
+  border-radius: 12px;
+  min-width: 140px;
+  max-width: 210px;
+  padding: 18px 14px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.13);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.parceiro-card:hover {
+  box-shadow: 0 4px 18px #ffe20066;
+  transform: scale(1.04);
+}
+
+.sigla {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffe200;
+  margin-bottom: 8px;
+}
+
+.bos-quantidade {
+  font-size: 1.3rem;
+  margin-bottom: 14px;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.detalhes-btn {
+  background: linear-gradient(90deg, #ffe200 0%, #fff200 100%);
+  color: #18304b;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  padding: 9px 26px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 8px #ffe20022;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.detalhes-btn:hover {
+  background: linear-gradient(90deg, #fff 0%, #ffe200 100%);
+  color: #072d4d;
+  transform: scale(1.06);
+}
+
+.gerente-regional-info {
+  margin: 18px 0 20px 0;
+  padding: 14px 18px;
+  background: #18304b;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.gerente-regional-info a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.detalhes-page {
+  background: linear-gradient(132deg, #072d4d 0%, #18304b 100%);
+  min-height: 100vh;
+  color: #fff;
+  padding: 48px 16px;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.detalhes-header {
+  text-align: left;
+  margin-bottom: 22px;
+}
+
+.detalhes-label {
+  color: #ffe200;
+  font-weight: 600;
+}
+
+.detalhes-sigla {
+  color: #ffe200;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.detalhes-lista {
+  margin-top: 28px;
+}
+
+.detalhes-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: #072d4d;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px #ffe20033;
+  margin-bottom: 60px;
+}
+
+.detalhes-tabela th,
+.detalhes-tabela td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #18304b;
+  text-align: left;
+  color: #eee;
+  font-size: 1rem;
+}
+
+.detalhes-tabela th {
+  background: #ffe200;
+  color: #18304b;
+  font-weight: 600;
+}
+
+.detalhes-tabela tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 700px) {
+  .detalhes-tabela th,
+  .detalhes-tabela td {
+    padding: 6px 4px;
+    font-size: 0.81rem;
+  }
 }
