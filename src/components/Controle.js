@@ -126,61 +126,57 @@ export default function Home() {
       <div className="dashboard-top"></div>
       <div className="dashboard-bottom">
         <div className="mapa-container" style={{ position: "relative" }}>
+          {/* O popup e overlay devem ficar fora do mapa-visual para garantir z-index maior */}
+          {showPopup && (
+            <div>
+              <div className="popup-overlay" onClick={closePopup} />
+              <div className="popup-modal">
+                <button
+                  className="popup-close"
+                  onClick={closePopup}
+                  title="Fechar"
+                >
+                  ✖
+                </button>
+                {erro && <p style={{ color: "red" }}>{erro}</p>}
+                {estadoSelecionado && (
+                  <div>
+                    <h2>{estadoSelecionado}</h2>
+                    <h3>Centralizadoras:</h3>
+                    {centralizadorasDoEstado.length > 0 ? (
+                      <div className="centralizadora-lista">
+                        {centralizadorasDoEstado.map((cent) => (
+                          <button
+                            key={cent}
+                            className={`centralizadora-btn ${
+                              cent === centralizadoraSelecionada ? "ativa" : ""
+                            }`}
+                            onClick={() => {
+                              setCentralizadoraSelecionada(cent);
+                              setShowPopup(false);
+                            }}
+                          >
+                            {cent}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ color: "#fff" }}>
+                        Nenhuma centralizadora encontrada para este estado.
+                      </p>
+                    )}
+                    <p style={{ fontSize: 12, color: "#bbb", marginTop: 6 }}>
+                      Pressione ESC para fechar
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <div className="mapa-conteudo">
             <div className="mapa-visual">
               <MapaBrasil onEstadoSelecionado={handleEstadoSelecionado} />
-              {showPopup && (
-                <div>
-                  <div className="popup-overlay" onClick={closePopup} />
-                  <div className="popup-modal">
-                    <button
-                      className="popup-close"
-                      onClick={closePopup}
-                      title="Fechar"
-                    >
-                      ✖
-                    </button>
-                    {erro && <p style={{ color: "red" }}>{erro}</p>}
-                    {estadoSelecionado && (
-                      <div>
-                        <h2>{estadoSelecionado}</h2>
-                        <h3>Centralizadoras:</h3>
-                        {centralizadorasDoEstado.length > 0 ? (
-                          <div className="centralizadora-lista">
-                            {centralizadorasDoEstado.map((cent) => (
-                              <button
-                                key={cent}
-                                className={`centralizadora-btn ${
-                                  cent === centralizadoraSelecionada
-                                    ? "ativa"
-                                    : ""
-                                }`}
-                                onClick={() => {
-                                  setCentralizadoraSelecionada(cent);
-                                  setShowPopup(false);
-                                }}
-                              >
-                                {cent}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <p style={{ color: "#fff" }}>
-                            Nenhuma centralizadora encontrada para este estado.
-                          </p>
-                        )}
-                        <p
-                          style={{ fontSize: 12, color: "#bbb", marginTop: 6 }}
-                        >
-                          Pressione ESC para fechar
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
-
             {/* Painel lateral com abas */}
             <div className="mapa-dados">
               {centralizadoraSelecionada && dadosFiltrados.length > 0 && (

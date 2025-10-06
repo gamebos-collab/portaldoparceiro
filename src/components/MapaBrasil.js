@@ -1,64 +1,65 @@
-import React from "react";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import React, { useEffect } from "react";
+import { MapContainer, GeoJSON, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import brasilEstados from "../data/brasil-estados.json";
 import "./MapaBrasil.css";
 
-const geoUrl =
-  "https://raw.githubusercontent.com/codeforgermany/click_that_hood/master/public/data/brazil-states.geojson";
-
 export default function MapaBrasil({ onEstadoSelecionado }) {
+  const estiloPadrao = {
+    fillColor: "#acacacff",
+    weight: 1,
+    color: "#ffffff",
+    fillOpacity: 0.8,
+  };
+
+  const estiloHover = {
+    fillColor: "#3498db",
+    weight: 2,
+    color: "#ffffff",
+    fillOpacity: 0.9,
+  };
+
+  const onEachFeature = (feature, layer) => {
+    const estado = feature.properties.name;
+
+    layer.setStyle(estiloPadrao);
+
+    layer.on({
+      mouseover: () => layer.setStyle(estiloHover),
+      mouseout: () => layer.setStyle(estiloPadrao),
+      click: () => {
+        if (onEstadoSelecionado) {
+          onEstadoSelecionado(estado);
+        }
+      },
+    });
+  };
+
+  const AjustarMapaAoBrasil = () => {
+    const map = useMap();
+    useEffect(() => {
+      const bounds = L.geoJSON(brasilEstados).getBounds();
+      map.fitBounds(bounds);
+      map.dragging.disable(); // 🔒 Desativa o arraste do mapa
+    }, [map]);
+    return null;
+  };
+
   return (
     <div className="mapa-container">
-      <ComposableMap
-        projection="geoMercator"
-        projectionConfig={{
-          scale: 1000,
-          center: [-52, -15],
-        }}
-        width={980}
-        height={600}
-        style={{ width: "100%", height: "100%" }}
+      <MapContainer
+        center={[-15.78, -47.93]}
+        zoom={4}
+        style={{ width: "100%", height: "100vh" }}
+        scrollWheelZoom={false}
+        zoomControl={false}
+        doubleClickZoom={false}
+        dragging={false} // 🔒 Garante que o mapa não seja arrastável
       >
-        <Geographies geography={geoUrl}>
-          {({ geographies }) =>
-            geographies.map((geo) => {
-              const estado = geo.properties.name;
-
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  onClick={() => onEstadoSelecionado?.(estado)}
-                  style={{
-                    default: {
-                      fill: "#2c3e50",
-                      stroke: "#ffffff",
-                      strokeWidth: 0.8,
-                      outline: "none",
-                      transition: "transform 0.3s ease",
-                      transformOrigin: "center center",
-                    },
-                    hover: {
-                      fill: "#3498db",
-                      stroke: "#ffffff",
-                      strokeWidth: 1.2,
-                      transform: "scale(1.08)",
-                      transformOrigin: "center center",
-                      transition: "transform 1s ease",
-                      outline: "none",
-                    },
-                    pressed: {
-                      fill: "#2980b9",
-                      stroke: "#ffffff",
-                      strokeWidth: 1.2,
-                      outline: "none",
-                    },
-                  }}
-                />
-              );
-            })
-          }
-        </Geographies>
-      </ComposableMap>
+        <GeoJSON data={brasilEstados} onEachFeature={onEachFeature} />
+        <AjustarMapaAoBrasil />
+      </MapContainer>
     </div>
   );
 }
