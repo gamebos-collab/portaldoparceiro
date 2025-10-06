@@ -1,0 +1,323 @@
+.monitoramento-page {
+  padding: 40px 5vw 40px 2vw;
+  background: linear-gradient(100deg, #0d1e40 0%, #23376b 100%);
+  min-height: 100vh;
+  color: #000000;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.monitoramento-header {
+  margin-bottom: 32px;
+  text-align: left;
+}
+.monitoramento-header h1 {
+  font-size: 2.4rem;
+  text-align: center;
+  font-weight: bold;
+  color: #ffe200;
+}
+.monitoramento-desc {
+  font-size: 1.1rem;
+  text-align: center;
+  color: #c9d4e5;
+  margin-top: 8px;
+  display: block;
+}
+
+.monitoramento-content-split {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.monitoramento-section {
+  width: 100%;
+}
+
+.monitoramento-metricas {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.metrica-card {
+  background: #1c2957;
+  border-radius: 18px;
+  padding: 22px 38px;
+  min-width: 150px;
+  text-align: center;
+  box-shadow: 0 2px 22px rgba(0, 0, 0, 0.13);
+}
+.metrica-card h4 {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+.metrica-card span {
+  font-size: 2.1rem;
+  font-weight: bold;
+  color: #ffe200;
+}
+
+/* NOVO: linha para Unidades mais Ofensoras + Evolução Mensal */
+.monitoramento-superior-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 30px;
+}
+.unidades-ofensoras-wrapper {
+  background: #1c2957;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+  padding: 18px 10px 8px 10px;
+  max-width: 600px;
+  min-width: 310px;
+  flex: 1 1 340px;
+  display: flex;
+  flex-direction: column;
+}
+.unidades-ofensoras-titulo {
+  color: #ffe200;
+  text-align: center;
+  font-size: 1.13rem;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+.unidades-ofensoras-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+.unidades-ofensoras-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #23376b;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.unidades-ofensoras-table th,
+.unidades-ofensoras-table td {
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 0.97rem;
+}
+.unidades-ofensoras-table th {
+  font-weight: bold;
+  color: #ffe200;
+  background: #1c2957;
+}
+.unidades-ofensoras-table .th-centralizadora,
+.unidades-ofensoras-table .td-arrow {
+  width: 10px;
+  padding-left: 2px;
+  padding-right: 20px;
+  text-align: left;
+}
+.unidades-ofensoras-table .td-centralizadora {
+  text-align: left;
+  font-weight: 20;
+  color: #fff;
+}
+.arrow-up {
+  color: #ff0000;
+  font-size: 1.1em;
+  vertical-align: middle;
+  font-weight: bold;
+}
+.arrow-down {
+  color: #00ff0d;
+  font-size: 1.1em;
+  vertical-align: middle;
+  font-weight: bold;
+}
+.ofensora-hovered {
+  background: #243e6b !important;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* NOVO: Evolução mensal por mês */
+.evolucao-mensal-card {
+  background: #1c2957;
+  border-radius: 14px;
+  box-shadow: 0 2px 22px rgba(0, 0, 0, 0.1);
+  padding: 18px 14px 10px 16px;
+  min-width: 320px;
+  max-width: 900px;
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.evolucao-mensal-titulo {
+  color: #ffe200;
+  text-align: center;
+  font-size: 1.13rem;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+  font-weight: bold;
+}
+.evolucao-mensal-grafico-container {
+  width: 100%;
+  height: 220px;
+  background: #243e6b;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 8px rgba(44, 44, 44, 0.06);
+  padding: 8px 0 0 0;
+}
+.evolucao-mensal-explicacao {
+  color: #c0c0c0;
+  font-size: 0.98rem;
+  padding: 3px 10px 0 10px;
+  text-align: center;
+}
+
+.monitoramento-graficos-e-tabela {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  width: 100%;
+  align-items: flex-start;
+  position: relative;
+}
+
+.monitoramento-graficos {
+  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px;
+  min-width: 0;
+}
+
+/* Coluna fixa na margem direita para os cards de risco */
+.clientes-risco-cards-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  right: 0;
+  top: 120px;
+  align-self: flex-start;
+  max-width: 400px;
+  min-width: 270px;
+  z-index: 2;
+}
+
+.clientes-risco-card {
+  background: #1c2957;
+  border-radius: 18px;
+  padding: 18px 14px;
+  width: 100%;
+  box-shadow: 0 1px 22px rgba(0, 0, 0, 0.637);
+}
+.clientes-risco-card h3 {
+  color: #ffe200;
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.clientes-risco-tabela-wrap + .clientes-risco-tabela-wrap {
+  margin-top: 26px;
+}
+
+.clientes-risco-titulo {
+  font-weight: bold;
+  font-size: 1.08rem;
+  margin-bottom: 2px;
+  margin-top: 10px;
+  color: #fff;
+  text-align: center;
+}
+
+.clientes-risco-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 10px;
+  background: #23376b;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.925);
+}
+.clientes-risco-tabela th:first-child,
+.clientes-risco-tabela td:first-child {
+  color: #a0a0a0;
+  font-weight: bold;
+}
+
+.clientes-risco-tabela th {
+  font-weight: bold;
+  border-bottom: 1px solid #ffffff;
+}
+
+.clientes-risco-tabela td {
+  border-bottom: 1px solid #ffffff;
+}
+
+.clientes-risco-tabela tr:last-child td {
+  border-bottom: none;
+}
+
+.risco3 {
+  color: #ff4242;
+}
+.risco2 {
+  color: #ff9800;
+}
+.risco1 {
+  color: #00ff40;
+}
+
+.monitoramento-loading,
+.monitoramento-erro {
+  font-size: 1.3rem;
+  color: #fff2a8;
+  margin: 60px 0;
+  text-align: center;
+}
+
+/* Responsividade */
+@media (max-width: 1100px) {
+  .monitoramento-superior-row {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .monitoramento-graficos-e-tabela {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .clientes-risco-cards-coluna,
+  .evolucao-mensal-card {
+    position: static;
+    max-width: unset;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+}
+@media (max-width: 900px) {
+  .monitoramento-page {
+    padding: 24px 3vw 24px 3vw;
+  }
+  .monitoramento-metricas {
+    gap: 14px;
+  }
+  .grafico-card {
+    padding: 16px 5px;
+  }
+}
+@media (max-width: 600px) {
+  .monitoramento-header h1 {
+    font-size: 1.3rem;
+  }
+  .metrica-card {
+    padding: 14px 12px;
+    min-width: 90px;
+  }
+}

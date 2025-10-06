@@ -10,12 +10,22 @@ export default function Header() {
   const { usuarioLogado, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const menuItems = [];
+  // Monitoramento agora aponta para a página correta
+  const menuItems = [
+    {
+      label: "Monitoramento",
+      to: "/monitoramento",
+    },
+    {
+      label: "Controle",
+      to: "/controle",
+    },
+  ];
 
   if (usuarioLogado) {
     menuItems.push({
       label: "Dashboard",
-      to: "/dashboard",
+      to: "/", // Home é o Dashboard agora
     });
   }
 
@@ -67,9 +77,19 @@ export default function Header() {
               }}
               style={{ position: "relative" }}
             >
-              <Link to={item.to || "#"} className="menu-link">
-                {item.label}
-              </Link>
+              {/* Se for menu com link direto */}
+              {item.to ? (
+                <Link
+                  to={item.to}
+                  className="menu-link"
+                  onClick={() => setOpenDropdown(null)}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span className="menu-link">{item.label}</span>
+              )}
+              {/* Se for menu com submenu */}
               {item.submenu && openDropdown === idx && (
                 <ul className="submenu">
                   {item.submenu.map((sub, subIdx) => (
@@ -95,7 +115,6 @@ export default function Header() {
             </li>
           ))}
         </ul>
-
         {usuarioLogado && (
           <button className="logout-button" onClick={handleLogout}>
             Sair

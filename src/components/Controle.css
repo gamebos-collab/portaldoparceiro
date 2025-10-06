@@ -73,6 +73,7 @@
   margin-bottom: 6px;
   font-size: 1rem;
 }
+
 .popup-overlay {
   position: absolute;
   left: 0;
@@ -81,8 +82,8 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.45);
   z-index: 10;
-  /* Remova right: 0; e bottom: 0; */
 }
+
 .popup-modal {
   position: absolute;
   left: 150px; /* Alinha à esquerda */
@@ -97,6 +98,7 @@
   color: #fff;
   box-shadow: 0 6px 32px rgba(0, 0, 0, 0.16);
 }
+
 .popup-close {
   position: absolute;
   top: 8px;
@@ -107,6 +109,7 @@
   font-size: 22px;
   cursor: pointer;
 }
+
 .popup-back {
   margin-top: 16px;
   padding: 7px 24px;
@@ -117,6 +120,7 @@
   font-weight: bold;
   cursor: pointer;
 }
+
 .centralizadora-btn {
   background: #fff;
   color: #072d4d;
@@ -126,11 +130,13 @@
   padding: 5px 12px;
   cursor: pointer;
 }
+
 .centralizadora-btn.ativa {
   background: #ffe200;
   color: #18304b;
   font-weight: bold;
 }
+
 .painel-lateral {
   background: #072d4d;
   border-radius: 12px;

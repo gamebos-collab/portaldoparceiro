@@ -1,14 +1,9 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import TopBar from "./components/TopBar";
 import Header from "./components/Header";
-import Home from "./components/Home";
+import Controle from "./components/Controle";
 import Footer from "./components/Footer";
 import Noticias from "./pages/Noticias";
 import Politicadeparceiros from "./pages/Politicadeparceiros";
@@ -17,30 +12,22 @@ import Faq from "./pages/Faq";
 import Quemsomos from "./pages/Quemsomos";
 import Sobreoportal from "./pages/Sobreoportal";
 import Contatos from "./pages/Contatos";
-import Login from "./components/Login";
-import Cadastro from "./components/Cadastro";
-import Dashboard from "./components/Dashboard";
+import Monitoramento from "./pages/Monitoramento";
 import "./App.css";
 
 function AppRoutes() {
-  const { usuarioLogado } = React.useContext(AuthContext);
-
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/cadastro" element={<Cadastro />} />
-      <Route
-        path="/dashboard"
-        element={usuarioLogado ? <Dashboard /> : <Navigate to="/" replace />}
-      />
+      <Route path="/" element={<Monitoramento />} />
+      <Route path="/monitoramento" element={<Monitoramento />} />
+      <Route path="/controle" element={<Controle />} />
       <Route path="/comunicacao/noticias" element={<Noticias />} />
       <Route path="/comunicacao/contatos" element={<Contatos />} />
       <Route path="/informacoes/politica" element={<Politicadeparceiros />} />
-      <Route path="/informacoes/Documentos" element={<Documentos />} />
-      <Route path="/informacoes/Faq" element={<Faq />} />
+      <Route path="/informacoes/documentos" element={<Documentos />} />
+      <Route path="/informacoes/faq" element={<Faq />} />
       <Route path="/institucional/sobre" element={<Sobreoportal />} />
-      <Route path="/institucional/Quemsomos" element={<Quemsomos />} />
+      <Route path="/institucional/quemsomos" element={<Quemsomos />} />
     </Routes>
   );
 }

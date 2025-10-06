@@ -9,9 +9,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import "./Dashboard.css";
+import "./Controle.css";
 
-export default function Dashboard() {
+export default function Home() {
   const [dadosExcel, setDadosExcel] = useState([]);
   const [estadoSelecionado, setEstadoSelecionado] = useState(null);
   const [centralizadoraSelecionada, setCentralizadoraSelecionada] =
