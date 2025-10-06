@@ -58,7 +58,16 @@
   z-index: 10000 !important;
 }
 
-.leaflet-popup-content-wrapper,
+.leaflet-popup-content-wrapper {
+  margin-top: -10px; /* move o popup para cima */
+  max-width: 450px; /* controla a largura */
+  padding: 10px;
+  background-color: #ffffff;
+  color: #333333;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(248, 248, 248, 0.815);
+}
+
 .leaflet-popup-tip {
   z-index: 10000 !important;
 }
