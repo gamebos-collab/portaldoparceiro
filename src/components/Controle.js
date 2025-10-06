@@ -142,9 +142,9 @@ const estadoCentralizadoras = {
 // Gerentes regionais (exemplo)
 const gerentesRegionais = {
   CXS: {
-    nome: "João Silva",
-    email: "joao@empresa.com",
-    telefone: "5551999999999",
+    nome: "Alexandre Azambuja",
+    email: "alexandre.tavares@translovato.com.br",
+    telefone: "55 (51) 99459-2562",
   },
   POA: {
     nome: "Maria Souza",
