@@ -312,7 +312,7 @@ export default function Home() {
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "40px",
+          padding: "30px",
           border: "1px solid #ccc",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
@@ -360,7 +360,7 @@ export default function Home() {
               alignItems: "center",
               justifyContent: "center",
               textAlign: "center",
-              padding: "40px",
+              padding: "30px",
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
@@ -466,7 +466,7 @@ export default function Home() {
           className="popup-modal"
           style={{
             position: "fixed",
-            top: 375,
+            top: 380,
             left: -60,
             width: "100vw",
             height: "90vh",
