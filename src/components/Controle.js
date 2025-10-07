@@ -468,14 +468,14 @@ export default function Home() {
             position: "fixed", // fixa o popup na tela
             top: "55%", // distância do topo da tela (ajuste vertical, pode ser 'top: 0' se quiser no topo)
             right: "0", // encostado na margem direita
-            width: "925px", // largura fixa do popup
+            width: "1000px", // largura fixa do popup
             maxWidth: "100vw", // não ultrapassa viewport
             maxHeight: "90vh", // altura máxima visível
             overflowY: "auto", // ativa rolagem vertical se necessário
             padding: "24px", // espaço interno do popup
             borderRadius: "12px", // bordas arredondadas
-            backgroundColor: "rgba(231, 219, 219, 0.3)", // fundo com transparência
-            boxShadow: "0 0 20px rgba(0, 0, 0, 0.3)", // sombra externa
+            backgroundColor: "rgba(0, 0, 0, 0.3)", // fundo com transparência
+            boxShadow: "0 0 20px rgba(182, 182, 182, 0.74), 0.3)", // sombra externa
             display: "flex",
             flexDirection: "column", // organiza conteúdo verticalmente
             alignItems: "flex-start", // alinha conteúdo à esquerda dentro do popup

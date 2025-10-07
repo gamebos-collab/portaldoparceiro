@@ -81,7 +81,7 @@
 
 .popup-modal {
   position: absolute;
-  left: 800px; /* Alinha à esquerda */
+  left: 500px; /* Alinha à esquerda */
   top: 50%;
   transform: translate(0, -50%);
   background: #072d4d;
