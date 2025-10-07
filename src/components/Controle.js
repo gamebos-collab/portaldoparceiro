@@ -467,7 +467,7 @@ export default function Home() {
           style={{
             position: "fixed", // fixa o popup na tela
             top: "55%", // distância do topo da tela (ajuste vertical, pode ser 'top: 0' se quiser no topo)
-            right: "0", // encostado na margem direita
+            right: "-5%", // encostado na margem direita
             width: "1000px", // largura fixa do popup
             maxWidth: "100vw", // não ultrapassa viewport
             maxHeight: "90vh", // altura máxima visível

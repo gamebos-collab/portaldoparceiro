@@ -95,7 +95,6 @@
 }
 .popup-modal-direita {
   position: absolute;
-  right: 150px; /* Alinha à direita */
   top: 40%;
   transform: translate(0, -50%);
   background: #072d4d;
