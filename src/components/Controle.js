@@ -466,10 +466,10 @@ export default function Home() {
           className="popup-modal"
           style={{
             position: "fixed",
-            top: 300,
+            top: 325,
             left: -60,
             width: "100vw",
-            height: "70vh",
+            height: "90vh",
             backgroundColor: "rgba(0, 0, 0, 0.6)", // fundo escurecido
             display: "flex",
             justifyContent: "right",
