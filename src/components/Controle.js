@@ -466,7 +466,7 @@ export default function Home() {
           className="popup-modal"
           style={{
             position: "fixed",
-            top: 325,
+            top: 375,
             left: -60,
             width: "100vw",
             height: "90vh",
@@ -482,7 +482,7 @@ export default function Home() {
             style={{
               width: "100%", // largura responsiva
               maxWidth: "900px", // limite máximo de largura
-              maxHeight: "100vh", // altura máxima
+              maxHeight: "300vh", // altura máxima
               overflowY: "auto", // rolagem se ultrapassar altura
               backgroundColor: "#000c3b",
               borderRadius: "12px",
