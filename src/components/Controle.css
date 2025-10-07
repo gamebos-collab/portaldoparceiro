@@ -81,8 +81,22 @@
 
 .popup-modal {
   position: absolute;
-  left: 500px; /* Alinha à esquerda */
-  top: 50%;
+  left: 150px; /* Alinha à esquerda */
+  top: 40%;
+  transform: translate(0, -50%);
+  background: #072d4d;
+  padding: 32px 24px 16px 24px;
+  border-radius: 16px;
+  z-index: 11;
+  min-width: 320px;
+  min-height: 120px;
+  color: #fff;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.16);
+}
+.popup-modal-direita {
+  position: absolute;
+  right: 150px; /* Alinha à direita */
+  top: 40%;
   transform: translate(0, -50%);
   background: #072d4d;
   padding: 32px 24px 16px 24px;

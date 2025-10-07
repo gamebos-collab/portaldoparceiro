@@ -463,7 +463,7 @@ export default function Home() {
     if (centralizadoraSelecionada) {
       return (
         <div
-          className="popup-modal"
+          className="popup-modal-direita"
           style={{
             position: "fixed", // fixa o popup na tela
             top: "55%", // distância do topo da tela (ajuste vertical, pode ser 'top: 0' se quiser no topo)
