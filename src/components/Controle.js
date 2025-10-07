@@ -292,25 +292,104 @@ export default function Home() {
 
   // Renderiza cards dos parceiros e centralizadora
   const renderCards = () => (
-    <div className="parceiros-cards">
+    <div
+      className="parceiros-cards"
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center", // centraliza horizontalmente
+        alignItems: "center", // centraliza verticalmente
+        gap: "20px", // espaço entre os cards
+        marginTop: "24px",
+      }}
+    >
       {/* Card Centralizadora */}
-      <div className="parceiro-card">
-        <div className="sigla">{centralizadoraSelecionada}</div>
-        <div className="bos-quantidade">{bosCentralizadora.length} B.O</div>
-        <button className="detalhes-btn" onClick={abrirDetalhesCentralizadora}>
+      <div
+        className="parceiro-card"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "40px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+          backgroundColor: "#f9f9f9",
+          width: "180px",
+        }}
+      >
+        <div
+          className="sigla"
+          style={{ fontWeight: "bold", fontSize: "1.2rem" }}
+        >
+          {centralizadoraSelecionada}
+        </div>
+        <div
+          className="bos-quantidade"
+          style={{ margin: "8px 0", color: "#ffffffff" }}
+        >
+          {bosCentralizadora.length} B.O
+        </div>
+        <button
+          className="detalhes-btn"
+          onClick={abrirDetalhesCentralizadora}
+          style={{
+            padding: "6px 12px",
+            borderRadius: "4px",
+            border: "none",
+            backgroundColor: "#072d4d",
+            color: "#072d4d",
+            cursor: "pointer",
+          }}
+        >
           Ver B.Os da Centralizadora
         </button>
       </div>
+
       {/* Cards Parceiros */}
       {parceirosDaCentralizadora.map((sigla, idx) => {
         const count = bosParceiros.filter((item) => item.Resp === sigla).length;
         return (
-          <div className="parceiro-card" key={sigla}>
-            <div className="sigla">{sigla}</div>
-            <div className="bos-quantidade">{count} B.O</div>
+          <div
+            className="parceiro-card"
+            key={sigla}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              padding: "40px",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+              backgroundColor: "#f9f9f9",
+              width: "180px",
+            }}
+          >
+            <div
+              className="sigla"
+              style={{ fontWeight: "bold", fontSize: "1.2rem" }}
+            >
+              {sigla}
+            </div>
+            <div
+              className="bos-quantidade"
+              style={{ margin: "8px 0", color: "#ffffffff" }}
+            >
+              {count} B.O
+            </div>
             <button
               className="detalhes-btn"
               onClick={() => abrirDetalhes(sigla)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "4px",
+                border: "none",
+                backgroundColor: "#072d4d",
+                color: "#072d4d",
+                cursor: "pointer",
+              }}
             >
               Ver B.Os do Parceiro
             </button>
@@ -383,14 +462,77 @@ export default function Home() {
     // Etapa 2: Escolher parceiro
     if (centralizadoraSelecionada) {
       return (
-        <div className="popup-modal">
-          <button className="popup-close" onClick={closePopup} title="Fechar">
-            <span aria-label="Fechar">&times;</span>
-          </button>
-          <div className="popup-content">
+        <div
+          className="popup-modal"
+          style={{
+            position: "fixed",
+            top: 400,
+            left: -100,
+            width: "100vw",
+            height: "70vh",
+            backgroundColor: "rgba(0, 0, 0, 0.6)", // fundo escurecido
+            display: "flex",
+            justifyContent: "right",
+            alignItems: "right",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            className="popup-content"
+            style={{
+              width: "100%", // largura responsiva
+              maxWidth: "900px", // limite máximo de largura
+              maxHeight: "100vh", // altura máxima
+              overflowY: "auto", // rolagem se ultrapassar altura
+              backgroundColor: "#000c3b",
+              borderRadius: "12px",
+              padding: "10px",
+              boxShadow: "0 0 20px rgba(248, 248, 248, 0.3)",
+              position: "right",
+            }}
+          >
+            {/* Botão de fechar */}
+            <button
+              className="popup-close"
+              onClick={closePopup}
+              title="Fechar"
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                background: "transparent",
+                border: "none",
+                fontSize: "24px",
+                cursor: "pointer",
+              }}
+            >
+              <span aria-label="Fechar">&times;</span>
+            </button>
+
+            {/* Título do popup */}
             <h2 className="popup-title">{centralizadoraSelecionada}</h2>
-            {renderGerenteRegional()}
-            <div className="abas">
+
+            {/* Aqui está o container do gerente regional */}
+            <div
+              className="regional-container"
+              style={{
+                display: "flex",
+                marginTop: "-30px",
+                flexDirection: "column",
+                alignItems: "center", // centraliza horizontalmente
+                justifyContent: "center",
+                textAlign: "center",
+                marginBottom: "10px", // espaçamento inferior
+              }}
+            >
+              {renderGerenteRegional()}
+            </div>
+
+            {/* Botões de abas */}
+            <div
+              className="abas"
+              style={{ marginTop: "16px", marginBottom: "16px" }}
+            >
               <button
                 className={abaAtiva === "visao" ? "aba ativa" : "aba"}
                 onClick={() => setAbaAtiva("visao")}
@@ -404,6 +546,8 @@ export default function Home() {
                 Gráfico
               </button>
             </div>
+
+            {/* Conteúdo da aba ativa */}
             <div className="conteudo-aba">
               {abaAtiva === "visao" && renderCards()}
               {abaAtiva === "grafico" && (
@@ -438,7 +582,14 @@ export default function Home() {
                 </ResponsiveContainer>
               )}
             </div>
-            <p className="popup-esc">Pressione ESC para fechar</p>
+
+            {/* Instrução para fechar */}
+            <p
+              className="popup-esc"
+              style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}
+            >
+              Pressione ESC para fechar
+            </p>
           </div>
         </div>
       );
