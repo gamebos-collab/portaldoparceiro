@@ -81,7 +81,7 @@
 
 .popup-modal {
   position: absolute;
-  left: 150px; /* Alinha à esquerda */
+  left: 800px; /* Alinha à esquerda */
   top: 50%;
   transform: translate(0, -50%);
   background: #072d4d;
@@ -160,7 +160,7 @@
   background: #ffe200;
   position: fixed; /* Centraliza na tela, independente do scroll */
   min-width: 380px;
-  max-width: 80px; /* ajuste para menos ou mais largura */
+  max-width: 30px; /* ajuste para menos ou mais largura */
   width: 90vw; /* responsivo, ocupa até 90% da tela */
   overflow-y: auto; /* rolagem se passar da altura máxima */
   color: #18304b;

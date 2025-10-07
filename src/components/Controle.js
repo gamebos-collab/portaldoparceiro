@@ -465,30 +465,35 @@ export default function Home() {
         <div
           className="popup-modal"
           style={{
-            position: "fixed",
-            top: 380,
-            left: -60,
-            width: "100vw",
-            height: "90vh",
-            backgroundColor: "rgba(0, 0, 0, 0.6)", // fundo escurecido
+            position: "fixed", // fixa o popup na tela
+            top: "55%", // distância do topo da tela (ajuste vertical, pode ser 'top: 0' se quiser no topo)
+            right: "0", // encostado na margem direita
+            width: "925px", // largura fixa do popup
+            maxWidth: "100vw", // não ultrapassa viewport
+            maxHeight: "90vh", // altura máxima visível
+            overflowY: "auto", // ativa rolagem vertical se necessário
+            padding: "24px", // espaço interno do popup
+            borderRadius: "12px", // bordas arredondadas
+            backgroundColor: "rgba(231, 219, 219, 0.3)", // fundo com transparência
+            boxShadow: "0 0 20px rgba(0, 0, 0, 0.3)", // sombra externa
             display: "flex",
-            justifyContent: "right",
-            alignItems: "right",
-            zIndex: 1000,
+            flexDirection: "column", // organiza conteúdo verticalmente
+            alignItems: "flex-start", // alinha conteúdo à esquerda dentro do popup
+            justifyContent: "flex-start", // conteúdo começa do topo
+            zIndex: 1000, // garante que fique acima de outros elementos
           }}
         >
           <div
             className="popup-content"
             style={{
-              width: "100%", // largura responsiva
-              maxWidth: "900px", // limite máximo de largura
-              maxHeight: "300vh", // altura máxima
-              overflowY: "auto", // rolagem se ultrapassar altura
-              backgroundColor: "#000c3b",
-              borderRadius: "12px",
-              padding: "10px",
-              boxShadow: "0 0 20px rgba(248, 248, 248, 0.3)",
-              position: "right",
+              width: "100%", // ocupa toda a largura do modal
+              maxWidth: "900px", // limite máximo horizontal (ajuste aqui)
+              maxHeight: "80vh", // altura máxima do conteúdo (ajuste vertical)
+              overflowY: "auto", // rolagem vertical se necessário
+              backgroundColor: "#000c3b", // cor de fundo do conteúdo
+              borderRadius: "12px", // bordas arredondadas internas
+              padding: "10px", // espaço interno do conteúdo
+              boxShadow: "0 0 20px rgba(248, 248, 248, 0.3)", // sombra interna
             }}
           >
             {/* Botão de fechar */}
