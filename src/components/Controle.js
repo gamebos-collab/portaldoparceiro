@@ -407,16 +407,16 @@ export default function Home() {
       <div className="gerente-regional-info">
         <h3>Gerente Regional</h3>
         <div>
-          <strong>Nome:</strong> {gerente.nome}
+          <strong></strong> {gerente.nome}
         </div>
         <div>
-          <strong>Email:</strong>{" "}
+          <strong></strong>{" "}
           <a href={`mailto:${gerente.email}`} style={{ color: "#ffe200" }}>
             {gerente.email}
           </a>
         </div>
         <div>
-          <strong>Telefone:</strong>{" "}
+          <strong></strong>{" "}
           <a
             href={`https://wa.me/${gerente.telefone.replace(/\D/g, "")}`}
             target="_blank"
