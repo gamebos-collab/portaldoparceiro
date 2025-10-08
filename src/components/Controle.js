@@ -535,16 +535,15 @@ export default function Home() {
           className="popup-modal-direita"
           style={{
             position: "fixed",
-            top: "65%",
-            right: "0%",
-            width: "750px",
+            top: "50%",
+            right: "3%",
+            width: "950px",
             maxWidth: "100vw",
             maxHeight: "90vh",
             overflowY: "auto",
-            padding: "24px",
-            borderRadius: "12px",
+            padding: "10px",
+            borderRadius: "3px",
             backgroundColor: "rgba(0, 0, 0, 0.3)",
-            boxShadow: "0 0 20px rgba(182, 182, 182, 0.74)",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
@@ -557,13 +556,12 @@ export default function Home() {
             style={{
               position: "relative",
               width: "100%",
-              maxWidth: "900px",
-              maxHeight: "80vh",
+              maxWidth: "950px",
+              maxHeight: "60vh",
               overflowY: "auto",
               backgroundColor: "#000c3b",
-              borderRadius: "12px",
+              borderRadius: "2px",
               padding: "10px",
-              boxShadow: "0 0 20px rgba(248, 248, 248, 0.3)",
             }}
           >
             {/* Botão de fechar dentro do conteúdo */}
