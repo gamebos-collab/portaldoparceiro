@@ -216,8 +216,8 @@
 .gerente-regional-info {
   background: #253a55; /* cor do fundo (mude para a cor que quiser) */
   border-radius: 12px; /* bordas arredondadas */
-  padding: 20px 5px; /* tamanho/espessura do fundo */
-  width: 700px; /* largura mínima */
+  padding: 5px 5px; /* tamanho/espessura do fundo */
+  width: 300px; /* largura mínima */
   border-radius: 10px;
   overflow-y: auto;
 }

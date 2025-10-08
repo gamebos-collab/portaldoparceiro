@@ -316,7 +316,7 @@ export default function Home() {
           border: "1px solid #ccc",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
-          width: "180px",
+          width: "50px",
         }}
       >
         <div
@@ -364,7 +364,7 @@ export default function Home() {
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "180px",
+              width: "50px",
             }}
           >
             <div
@@ -531,6 +531,7 @@ export default function Home() {
         }
       };
       return (
+        // ajuste posição popup e background
         <div
           className="popup-modal-direita"
           style={{
