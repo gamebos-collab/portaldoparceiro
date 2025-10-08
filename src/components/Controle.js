@@ -468,7 +468,7 @@ export default function Home() {
             position: "fixed",
             top: "65%",
             right: "-10%",
-            width: "1000px",
+            width: "900px",
             maxWidth: "100vw",
             maxHeight: "90vh",
             overflowY: "auto",
