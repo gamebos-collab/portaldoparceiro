@@ -535,8 +535,8 @@ export default function Home() {
           className="popup-modal-direita"
           style={{
             position: "fixed",
-            top: "50%",
-            right: "3%",
+            top: "55%",
+            right: "1%",
             width: "750px",
             maxWidth: "100vw",
             maxHeight: "90vh",
