@@ -465,38 +465,39 @@ export default function Home() {
         <div
           className="popup-modal-direita"
           style={{
-            position: "fixed", // fixa o popup na tela
-            top: "55%", // distância do topo da tela (ajuste vertical, pode ser 'top: 0' se quiser no topo)
-            right: "-5%", // encostado na margem direita
-            width: "1000px", // largura fixa do popup
-            maxWidth: "100vw", // não ultrapassa viewport
-            maxHeight: "90vh", // altura máxima visível
-            overflowY: "auto", // ativa rolagem vertical se necessário
-            padding: "24px", // espaço interno do popup
-            borderRadius: "12px", // bordas arredondadas
-            backgroundColor: "rgba(0, 0, 0, 0.3)", // fundo com transparência
-            boxShadow: "0 0 20px rgba(182, 182, 182, 0.74), 0.3)", // sombra externa
+            position: "fixed",
+            top: "65%",
+            right: "-10%",
+            width: "1000px",
+            maxWidth: "100vw",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            padding: "24px",
+            borderRadius: "12px",
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+            boxShadow: "0 0 20px rgba(182, 182, 182, 0.74)",
             display: "flex",
-            flexDirection: "column", // organiza conteúdo verticalmente
-            alignItems: "flex-start", // alinha conteúdo à esquerda dentro do popup
-            justifyContent: "flex-start", // conteúdo começa do topo
-            zIndex: 1000, // garante que fique acima de outros elementos
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            zIndex: 1000,
           }}
         >
           <div
             className="popup-content"
             style={{
-              width: "100%", // ocupa toda a largura do modal
-              maxWidth: "900px", // limite máximo horizontal (ajuste aqui)
-              maxHeight: "80vh", // altura máxima do conteúdo (ajuste vertical)
-              overflowY: "auto", // rolagem vertical se necessário
-              backgroundColor: "#000c3b", // cor de fundo do conteúdo
-              borderRadius: "12px", // bordas arredondadas internas
-              padding: "10px", // espaço interno do conteúdo
-              boxShadow: "0 0 20px rgba(248, 248, 248, 0.3)", // sombra interna
+              position: "relative", // necessário para posicionar o botão dentro
+              width: "100%",
+              maxWidth: "900px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              backgroundColor: "#000c3b",
+              borderRadius: "12px",
+              padding: "10px",
+              boxShadow: "0 0 20px rgba(248, 248, 248, 0.3)",
             }}
           >
-            {/* Botão de fechar */}
+            {/* Botão de fechar dentro do conteúdo */}
             <button
               className="popup-close"
               onClick={closePopup}
@@ -509,6 +510,7 @@ export default function Home() {
                 border: "none",
                 fontSize: "24px",
                 cursor: "pointer",
+                color: "#fff",
               }}
             >
               <span aria-label="Fechar">&times;</span>
