@@ -316,7 +316,7 @@ export default function Home() {
           border: "1px solid #ccc",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
-          width: "180px",
+          width: "30px",
         }}
       >
         <div
@@ -364,7 +364,7 @@ export default function Home() {
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "180px",
+              width: "30px",
             }}
           >
             <div
@@ -537,7 +537,7 @@ export default function Home() {
             position: "fixed",
             top: "50%",
             right: "3%",
-            width: "950px",
+            width: "750px",
             maxWidth: "100vw",
             maxHeight: "90vh",
             overflowY: "auto",
@@ -557,7 +557,7 @@ export default function Home() {
             style={{
               position: "relative",
               width: "100%",
-              maxWidth: "950px",
+              maxWidth: "750px",
               maxHeight: "60vh",
               overflowY: "auto",
               overflowX: "hidden", // <-- AJUSTE CRUCIAL
@@ -622,6 +622,12 @@ export default function Home() {
                     key={aba.key}
                     className={abaAtiva === aba.key ? "aba ativa" : "aba"}
                     onClick={() => setAbaAtiva(aba.key)}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setAbaAtiva(aba.key);
+                      }
+                    }}
                     style={{
                       padding: "8px 18px",
                       backgroundColor:

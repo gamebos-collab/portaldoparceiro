@@ -51,11 +51,16 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s, box-shadow 0.18s, color 0.18s;
 }
 
-.centralizadora-btn:hover {
-  background-color: #e0e0e0;
+.centralizadora-btn:hover,
+.centralizadora-btn:focus {
+  background-color: #ffe200;
+  color: #072d4d;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(255, 226, 0, 0.16);
+  outline: none;
 }
 
 .dados-centralizadora ul {
@@ -105,7 +110,7 @@
   min-height: 120px;
   color: #fff;
   box-shadow: 0 6px 32px rgba(0, 0, 0, 0.16);
-  overflow-x: hidden; /* <-- Garantir que não role lateralmente */
+  overflow-x: hidden;
 }
 
 .popup-close {
@@ -168,11 +173,23 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.2s, box-shadow 0.18s, color 0.18s;
+  box-shadow: none;
+  outline: none;
 }
 
 .aba.ativa {
   background: #ffe200;
   color: #072d4d;
+  box-shadow: 0 2px 8px rgba(255, 226, 0, 0.16);
+}
+
+.aba:hover,
+.aba:focus {
+  background: #ffe200;
+  color: #072d4d;
+  box-shadow: 0 2px 8px rgba(255, 226, 0, 0.16);
+  outline: none;
 }
 
 .conteudo-aba ul {
