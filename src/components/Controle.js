@@ -558,7 +558,7 @@ export default function Home() {
               position: "relative",
               width: "100%",
               maxWidth: "750px",
-              maxHeight: "650px",
+              maxHeight: "450px",
               overflowY: "auto",
               overflowX: "hidden", // <-- AJUSTE CRUCIAL
               backgroundColor: "#000c3b",
