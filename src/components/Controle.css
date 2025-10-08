@@ -171,11 +171,6 @@
 
 .aba.ativa {
   background: #ffe200;
-  position: fixed; /* Centraliza na tela, independente do scroll */
-  min-width: 380px;
-  max-width: 30px; /* ajuste para menos ou mais largura */
-  width: 90vw; /* responsivo, ocupa até 90% da tela */
-  overflow-y: auto; /* rolagem se passar da altura máxima */
   color: #072d4d;
 }
 
@@ -224,6 +219,7 @@
   padding: 20px 5px; /* tamanho/espessura do fundo */
   width: 700px; /* largura mínima */
   border-radius: 10px;
+  overflow-y: auto;
 }
 
 .popup-title {
@@ -232,4 +228,17 @@
   margin-bottom: 12px;
   text-align: center;
   margin-bottom: 50px;
+}
+
+.abas {
+  position: sticky;
+  top: 120px; /* ajuste conforme necessário para ficar colado abaixo do gerente regional */
+  background-color: #000c3b;
+  z-index: 100;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  border-bottom: 1px solid #444;
 }

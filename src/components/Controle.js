@@ -176,9 +176,9 @@ const barColors = [
 
 export default function Home() {
   const [dadosExcel, setDadosExcel] = useState([]);
-  const [estadoSelecionado, setEstadoSelecionado] = useState(null); // Estado do mapa clicado
+  const [estadoSelecionado, setEstadoSelecionado] = useState(null);
   const [centralizadoraSelecionada, setCentralizadoraSelecionada] =
-    useState(null); // Só definida após escolher no popup
+    useState(null);
   const [erro, setErro] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState("visao");
@@ -297,9 +297,9 @@ export default function Home() {
       style={{
         display: "flex",
         flexWrap: "wrap",
-        justifyContent: "center", // centraliza horizontalmente
-        alignItems: "center", // centraliza verticalmente
-        gap: "20px", // espaço entre os cards
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "20px",
         marginTop: "24px",
       }}
     >
@@ -403,20 +403,24 @@ export default function Home() {
   const renderGerenteRegional = () => {
     const gerente = gerentesRegionais[centralizadoraSelecionada];
     if (!gerente) return null;
+
     return (
-      <div className="gerente-regional-info">
+      <div
+        className="gerente-regional-info"
+        style={{
+          textAlign: "center",
+          color: "#fff",
+          lineHeight: "1.6",
+        }}
+      >
         <h3>Gerente Regional</h3>
+        <div>{gerente.nome}</div>
         <div>
-          <strong></strong> {gerente.nome}
-        </div>
-        <div>
-          <strong></strong>{" "}
           <a href={`mailto:${gerente.email}`} style={{ color: "#ffe200" }}>
             {gerente.email}
           </a>
         </div>
         <div>
-          <strong></strong>{" "}
           <a
             href={`https://wa.me/${gerente.telefone.replace(/\D/g, "")}`}
             target="_blank"
@@ -428,6 +432,17 @@ export default function Home() {
         </div>
       </div>
     );
+  };
+
+  // Adicione estas funções para evitar o erro "not defined"
+  const renderBOsCriticos = () => {
+    return <div>Conteúdo de B.O's Críticos</div>;
+  };
+  const renderBOsRevercoes = () => {
+    return <div>Conteúdo de Reversões</div>;
+  };
+  const renderBOsBaixados = () => {
+    return <div>Conteúdo de B.O's Baixados</div>;
   };
 
   // Renderiza o popup
@@ -461,6 +476,60 @@ export default function Home() {
     }
     // Etapa 2: Escolher parceiro
     if (centralizadoraSelecionada) {
+      const abas = [
+        { key: "visao", label: "Visão Geral" },
+        { key: "grafico", label: "Gráfico" },
+        { key: "criticos", label: "B.O's Críticos" },
+        { key: "revercoes", label: "Reversões" },
+        { key: "baixados", label: "B.O's Baixados" },
+      ];
+
+      const renderAbaConteudo = () => {
+        switch (abaAtiva) {
+          case "visao":
+            return renderCards();
+          case "grafico":
+            return (
+              <ResponsiveContainer width="100%" height={340}>
+                <BarChart data={graficoData}>
+                  <XAxis
+                    dataKey="parceiro"
+                    tick={{ fill: "#fff", fontWeight: 700 }}
+                  />
+                  <YAxis tick={{ fill: "#fff", fontWeight: 700 }} />
+                  <Tooltip
+                    wrapperStyle={{ fontSize: "1rem" }}
+                    contentStyle={{
+                      background: "#072d4d",
+                      border: "none",
+                      color: "#fff",
+                    }}
+                    labelStyle={{ color: "#ffe200", fontWeight: 700 }}
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="bos"
+                    name="B.O"
+                    isAnimationActive={true}
+                    label={{ position: "top", fill: "#ffe200" }}
+                  >
+                    {graficoData.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            );
+          case "criticos":
+            return renderBOsCriticos();
+          case "revercoes":
+            return renderBOsRevercoes();
+          case "baixados":
+            return renderBOsBaixados();
+          default:
+            return null;
+        }
+      };
       return (
         <div
           className="popup-modal-direita"
@@ -486,7 +555,7 @@ export default function Home() {
           <div
             className="popup-content"
             style={{
-              position: "relative", // necessário para posicionar o botão dentro
+              position: "relative",
               width: "100%",
               maxWidth: "900px",
               maxHeight: "80vh",
@@ -519,76 +588,65 @@ export default function Home() {
             {/* Título do popup */}
             <h2 className="popup-title">{centralizadoraSelecionada}</h2>
 
-            {/* Aqui está o container do gerente regional */}
+            {/* Container do gerente regional e menus juntos */}
             <div
               className="regional-container"
               style={{
                 display: "flex",
-                marginTop: "-30px",
                 flexDirection: "column",
-                alignItems: "center", // centraliza horizontalmente
+                alignItems: "center",
                 justifyContent: "center",
                 textAlign: "center",
-                marginBottom: "10px", // espaçamento inferior
+                marginBottom: "10px",
+                width: "100%",
               }}
             >
               {renderGerenteRegional()}
-            </div>
 
-            {/* Botões de abas */}
-            <div
-              className="abas"
-              style={{ marginTop: "16px", marginBottom: "16px" }}
-            >
-              <button
-                className={abaAtiva === "visao" ? "aba ativa" : "aba"}
-                onClick={() => setAbaAtiva("visao")}
+              {/* MENUS/ABAS DENTRO DO CONTAINER DO GERENTE E NÃO FIXOS */}
+              <div
+                className="abas"
+                style={{
+                  marginTop: "20px",
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: "12px",
+                  width: "100%",
+                  position: "static",
+                  background: "transparent",
+                }}
               >
-                Visão Geral
-              </button>
-              <button
-                className={abaAtiva === "grafico" ? "aba ativa" : "aba"}
-                onClick={() => setAbaAtiva("grafico")}
-              >
-                Gráfico
-              </button>
+                {abas.map((aba) => (
+                  <button
+                    key={aba.key}
+                    className={abaAtiva === aba.key ? "aba ativa" : "aba"}
+                    onClick={() => setAbaAtiva(aba.key)}
+                    style={{
+                      padding: "8px 18px",
+                      backgroundColor:
+                        abaAtiva === aba.key ? "#ffe200" : "#072d4d",
+                      color: abaAtiva === aba.key ? "#18304b" : "#fff",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                      boxShadow:
+                        abaAtiva === aba.key
+                          ? "0 2px 8px rgba(255,226,0,0.1)"
+                          : "none",
+                      transition: "background 0.18s, color 0.18s",
+                    }}
+                  >
+                    {aba.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Conteúdo da aba ativa */}
-            <div className="conteudo-aba">
-              {abaAtiva === "visao" && renderCards()}
-              {abaAtiva === "grafico" && (
-                <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={graficoData}>
-                    <XAxis
-                      dataKey="parceiro"
-                      tick={{ fill: "#fff", fontWeight: 700 }}
-                    />
-                    <YAxis tick={{ fill: "#fff", fontWeight: 700 }} />
-                    <Tooltip
-                      wrapperStyle={{ fontSize: "1rem" }}
-                      contentStyle={{
-                        background: "#072d4d",
-                        border: "none",
-                        color: "#fff",
-                      }}
-                      labelStyle={{ color: "#ffe200", fontWeight: 700 }}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="bos"
-                      name="B.O"
-                      isAnimationActive={true}
-                      label={{ position: "top", fill: "#ffe200" }}
-                    >
-                      {graficoData.map((entry, idx) => (
-                        <Cell key={`cell-${idx}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+            <div className="conteudo-aba">{renderAbaConteudo()}</div>
 
             {/* Instrução para fechar */}
             <p
