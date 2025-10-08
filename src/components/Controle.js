@@ -316,7 +316,7 @@ export default function Home() {
           border: "1px solid #ccc",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
-          width: "50px",
+          width: "180px",
         }}
       >
         <div
@@ -364,7 +364,7 @@ export default function Home() {
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "50px",
+              width: "180px",
             }}
           >
             <div
@@ -531,7 +531,6 @@ export default function Home() {
         }
       };
       return (
-        // ajuste posição popup e background
         <div
           className="popup-modal-direita"
           style={{
@@ -542,6 +541,7 @@ export default function Home() {
             maxWidth: "100vw",
             maxHeight: "90vh",
             overflowY: "auto",
+            overflowX: "hidden", // <-- AJUSTE CRUCIAL
             padding: "10px",
             borderRadius: "3px",
             backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -560,6 +560,7 @@ export default function Home() {
               maxWidth: "950px",
               maxHeight: "60vh",
               overflowY: "auto",
+              overflowX: "hidden", // <-- AJUSTE CRUCIAL
               backgroundColor: "#000c3b",
               borderRadius: "2px",
               padding: "10px",
