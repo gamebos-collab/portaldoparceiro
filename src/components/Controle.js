@@ -601,7 +601,7 @@ export default function Home() {
                 alignItems: "center",
                 justifyContent: "center",
                 textAlign: "center",
-                marginBottom: "10px",
+                marginBottom: "1px",
                 width: "100%",
               }}
             >
@@ -611,12 +611,13 @@ export default function Home() {
               <div
                 className="abas"
                 style={{
-                  marginTop: "20px",
+                  marginTop: "1px",
                   display: "flex",
                   flexDirection: "row",
                   justifyContent: "center",
                   gap: "12px",
-                  width: "100%",
+                  width: "50%",
+                  height: "40px",
                   position: "static",
                   background: "transparent",
                 }}
@@ -641,7 +642,7 @@ export default function Home() {
                       borderRadius: "4px",
                       cursor: "pointer",
                       fontWeight: "bold",
-                      fontSize: "1rem",
+                      fontSize: "0.9rem",
                       boxShadow:
                         abaAtiva === aba.key
                           ? "0 2px 8px rgba(255,226,0,0.1)"
