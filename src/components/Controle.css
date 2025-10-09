@@ -93,7 +93,7 @@ body,
 
 .popup-overlay {
   position: absolute;
-  left: 0;
+  left: 25px;
   top: 0;
   width: 40vw; /* ou use a largura real do mapa, ex: 400px */
   height: 100%;
