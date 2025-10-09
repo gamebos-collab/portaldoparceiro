@@ -539,7 +539,7 @@ export default function Home() {
             right: "1%",
             width: "750px",
             maxWidth: "100vw",
-            height: "600px",
+            height: "500px",
             overflowY: "auto",
             overflowX: "hidden", // <-- AJUSTE CRUCIAL
             padding: "15px",
@@ -558,7 +558,7 @@ export default function Home() {
               position: "relative",
               width: "100%",
               maxWidth: "750px",
-              height: "600px",
+              height: "500px",
               overflowY: "auto",
               overflowX: "hidden", // <-- AJUSTE CRUCIAL
               backgroundColor: "#000c3b",
@@ -657,7 +657,12 @@ export default function Home() {
             {/* Instrução para fechar */}
             <p
               className="popup-esc"
-              style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}
+              style={{
+                marginTop: "16px",
+                textAlign: "center",
+                fontSize: "0.9rem",
+                color: "#666",
+              }}
             >
               Pressione ESC para fechar
             </p>
