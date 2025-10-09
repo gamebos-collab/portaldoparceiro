@@ -246,6 +246,7 @@ body,
 .gerente-regional-info {
   background: #253a55;
   border-radius: 12px;
+  font-size: 0.5rem;
   padding: 5px 5px;
   width: 300px;
   border-radius: 10px;
@@ -253,7 +254,7 @@ body,
 }
 
 .popup-title {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: bold;
   margin-bottom: 12px;
   text-align: center;

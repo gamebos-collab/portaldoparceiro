@@ -322,11 +322,11 @@ export default function Home() {
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "15px",
+          padding: "5px",
           border: "1px solid #ccc",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
-          width: "180px",
+          width: "20px",
         }}
       >
         <div
@@ -370,11 +370,11 @@ export default function Home() {
               alignItems: "center",
               justifyContent: "center",
               textAlign: "center",
-              padding: "15px",
+              padding: "5px",
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "180px",
+              width: "20px",
             }}
           >
             <div
