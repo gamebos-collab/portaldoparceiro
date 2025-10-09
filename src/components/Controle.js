@@ -559,7 +559,7 @@ export default function Home() {
                   fontSize: "1.15rem",
                 }}
               >
-                Centralizadora não cadastrada
+                Centralizadora não atende
               </div>
             ) : (
               <>
