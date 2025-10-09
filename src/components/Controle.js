@@ -309,8 +309,8 @@ export default function Home() {
         flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
-        gap: "20px",
-        marginTop: "24px",
+        gap: "10px",
+        marginTop: "2px",
       }}
     >
       {/* Card Centralizadora */}
@@ -322,35 +322,36 @@ export default function Home() {
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "5px",
           border: "1px solid #ccc",
+          width: "200px", //tamnaho do card
+          height: "110px",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
-          width: "20px",
+          padding: "5px",
         }}
       >
-        <div
-          className="sigla"
-          style={{ fontWeight: "bold", fontSize: "1.2rem" }}
-        >
+        <div className="sigla" style={{ fontWeight: "bold", fontSize: "1rem" }}>
           {centralizadoraSelecionada}
         </div>
         <div
           className="bos-quantidade"
-          style={{ margin: "8px 0", color: "#000" }}
+          style={{ margin: "8px 0", color: "#ffffffff" }}
         >
           {bosCentralizadora.length} B.O
         </div>
         <button
-          className="detalhes-btn"
+          className="detalhes-btn" // ajuste do conteudo do card
           onClick={abrirDetalhesCentralizadora}
           style={{
             padding: "6px 12px",
             borderRadius: "4px",
+            width: "120px",
+            height: "40px",
             border: "none",
             backgroundColor: "#072d4d",
-            color: "#fff",
+            color: "#072d4d",
             cursor: "pointer",
+            fontSize: "0.9rem",
           }}
         >
           Ver B.Os da Centralizadora
@@ -374,31 +375,35 @@ export default function Home() {
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "20px",
+              width: "200px", //tamnaho do card
+              height: "110px",
             }}
           >
             <div
               className="sigla"
-              style={{ fontWeight: "bold", fontSize: "1.2rem" }}
+              style={{ fontWeight: "bold", fontSize: "1rem" }}
             >
               {sigla}
             </div>
             <div
               className="bos-quantidade"
-              style={{ margin: "8px 0", color: "#000" }}
+              style={{ margin: "8px 0", color: "#ffffffff" }}
             >
               {count} B.O
             </div>
             <button
-              className="detalhes-btn"
+              className="detalhes-btn" //ajuste conteudo do card parceiros
               onClick={() => abrirDetalhes(sigla)}
               style={{
                 padding: "6px 12px",
                 borderRadius: "4px",
                 border: "none",
                 backgroundColor: "#072d4d",
-                color: "#fff",
+                color: "#072d4d",
                 cursor: "pointer",
+                width: "120px",
+                height: "40px",
+                fontSize: "0.9rem",
               }}
             >
               Ver B.Os do Parceiro
@@ -577,8 +582,8 @@ export default function Home() {
               title="Fechar"
               style={{
                 position: "absolute",
-                top: "12px",
-                right: "12px",
+                top: "24px",
+                right: "24px",
                 background: "transparent",
                 border: "none",
                 fontSize: "24px",
@@ -615,8 +620,8 @@ export default function Home() {
                   display: "flex",
                   flexDirection: "row",
                   justifyContent: "center",
-                  gap: "12px",
-                  width: "50%",
+                  gap: "25px",
+                  width: "150%",
                   height: "40px",
                   position: "static",
                   background: "transparent",
