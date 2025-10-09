@@ -25,7 +25,7 @@
 /* 🔷 Estilo para estados ao passar o mouse */
 .leaflet-interactive:hover {
   cursor: pointer;
-  transition: fill 0.2s ease, stroke 0.2s ease;
+  transition: fill 0.5s ease, stroke 0.5s ease;
 }
 
 /* 🔷 Tooltip personalizada */

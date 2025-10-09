@@ -233,6 +233,11 @@ const gerentesRegionais = {
     email: "samuel.sales@translovato.com.br",
     telefone: "55 (11) 95303-5666",
   },
+  CRA: {
+    nome: "Wagner de Lima",
+    email: "wagner.lima@translovato.com.br",
+    telefone: "55 21-99922-2720",
+  },
 
   // Adicione todas as outras centralizadoras!
 };
