@@ -536,7 +536,7 @@ export default function Home() {
           style={{
             position: "fixed",
             top: "61%",
-            right: "1%",
+            right: "-1%",
             width: "750px",
             maxWidth: "100vw",
             height: "450px",
