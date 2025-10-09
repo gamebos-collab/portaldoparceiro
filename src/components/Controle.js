@@ -13,9 +13,6 @@ import {
 } from "recharts";
 import "./Controle.css";
 
-// Colunas para exibir nas telas de detalhe
-const colunasExibir = ["B.O", "Assunto", "Data", "Resp", "Centralizadora"];
-
 // Mapeamento das centralizadoras e seus parceiros
 const parceirosPorCentralizadora = {
   CXS: ["ERE", "PFU", "VAC", "VER", "LGV"],
@@ -147,15 +144,96 @@ const gerentesRegionais = {
     telefone: "55 (51) 99459-2562",
   },
   POA: {
-    nome: "Maria Souza",
-    email: "maria@empresa.com",
-    telefone: "5551998888888",
+    nome: "Alexandre Azambuja",
+    email: "alexandre.tavares@translovato.com.br",
+    telefone: "55 (51) 99459-2562",
   },
   SMA: {
-    nome: "Carlos Oliveira",
-    email: "carlos@empresa.com",
-    telefone: "5551998777666",
+    nome: "Reginaldo Petry",
+    email: "reginaldo.petry@translovato.com.br",
+    telefone: "55 (55) 99905-5949",
   },
+  BLU: {
+    nome: "Alessandro Cordero",
+    email: "alessandro.cordero@translovato.com.br",
+    telefone: "55 (47) 99286-1707",
+  },
+  JVL: {
+    nome: "Alexandre Stimamiglio",
+    email: "alexandre.stimamigli@translovato.com.br",
+    telefone: "55 (55) 99905-5949",
+  },
+  FLN: {
+    nome: "Alessandro Cordero",
+    email: "alessandro.cordero@translovato.com.br",
+    telefone: "55 (47) 99286-1707",
+  },
+  PPY: {
+    nome: "Thiago Souza",
+    email: "thiago.souza@translovato.com.br",
+    telefone: "55 (55) 99905-5949",
+  },
+  BHZ: {
+    nome: "Mayra de Aguiar",
+    email: "mayra.aguiar@translovato.com.br",
+    telefone: "55 (31) 9869-0100",
+  },
+  CWB: {
+    nome: "Edson Motta",
+    email: "edson.motta@translovato.com.br",
+    telefone: "55 (41) 99202-7292",
+  },
+  LDA: {
+    nome: "Guilherme Aguiar",
+    email: "guilherme.aguiar@translovato.com.br",
+    telefone: "55 (43) 3025-2777",
+  },
+  CAS: {
+    nome: "Azemar Junior",
+    email: "azemar.junior@translovato.com.br",
+    telefone: "55 (41) 99147-3331",
+  },
+  SOR: {
+    nome: "Samuel Sales",
+    email: "samuel.sales@translovato.com.br",
+    telefone: "55 (11) 95303-5666",
+  },
+  RIP: {
+    nome: "Clesio Nunes",
+    email: "clesio.nunes@translovato.com.br",
+    telefone: "55 (54) 99613-5268",
+  },
+  SUM: {
+    nome: "Samuel Sales",
+    email: "samuel.sales@translovato.com.br",
+    telefone: "55 (11) 95303-5666",
+  },
+  SAO: {
+    nome: "Edcarlos Ferreira",
+    email: "edcarlos.ferreira@translovato.com.br",
+    telefone: "55 (11) 95028-4557",
+  },
+  GRU: {
+    nome: "Antonio Bento",
+    email: "antonio.bento@translovato.com.br",
+    telefone: "55 (11) 94231-9986",
+  },
+  VIX: {
+    nome: "Rafael Batista",
+    email: "rafael.batista@translovato.com.br",
+    telefone: "55 (27) 99228-1034",
+  },
+  BAU: {
+    nome: "Marco da Silva",
+    email: "marco.silva@translovato.com.br",
+    telefone: "55 (14) 99829-8791",
+  },
+  CPN: {
+    nome: "Samuel Sales",
+    email: "samuel.sales@translovato.com.br",
+    telefone: "55 (11) 95303-5666",
+  },
+
   // Adicione todas as outras centralizadoras!
 };
 
@@ -323,7 +401,7 @@ export default function Home() {
           justifyContent: "center",
           textAlign: "center",
           border: "1px solid #ccc",
-          width: "200px", //tamnaho do card
+          width: "200px",
           height: "110px",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
@@ -340,7 +418,7 @@ export default function Home() {
           {bosCentralizadora.length} B.O
         </div>
         <button
-          className="detalhes-btn" // ajuste do conteudo do card
+          className="detalhes-btn"
           onClick={abrirDetalhesCentralizadora}
           style={{
             padding: "6px 12px",
@@ -375,7 +453,7 @@ export default function Home() {
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "200px", //tamnaho do card
+              width: "200px",
               height: "110px",
             }}
           >
@@ -392,7 +470,7 @@ export default function Home() {
               {count} B.O
             </div>
             <button
-              className="detalhes-btn" //ajuste conteudo do card parceiros
+              className="detalhes-btn"
               onClick={() => abrirDetalhes(sigla)}
               style={{
                 padding: "6px 12px",
@@ -466,18 +544,34 @@ export default function Home() {
           </button>
           <div className="popup-content">
             <h2 className="popup-title">{estadoSelecionado}</h2>
-            <h3>Escolha a Centralizadora</h3>
-            <div className="centralizadora-lista">
-              {centralizadoras.map((sigla) => (
-                <button
-                  key={sigla}
-                  className="centralizadora-btn"
-                  onClick={() => handleCentralizadoraSelecionada(sigla)}
-                >
-                  {sigla}
-                </button>
-              ))}
-            </div>
+            {centralizadoras.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  color: "#ffe200",
+                  fontWeight: "bold",
+                  margin: "36px 0 36px 0",
+                  fontSize: "1.15rem",
+                }}
+              >
+                Centralizadora não cadastrada
+              </div>
+            ) : (
+              <>
+                <h3>Escolha a Centralizadora</h3>
+                <div className="centralizadora-lista">
+                  {centralizadoras.map((sigla) => (
+                    <button
+                      key={sigla}
+                      className="centralizadora-btn"
+                      onClick={() => handleCentralizadoraSelecionada(sigla)}
+                    >
+                      {sigla}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             <p className="popup-esc">Pressione ESC para fechar</p>
           </div>
         </div>
@@ -551,7 +645,7 @@ export default function Home() {
             height: "450px",
             overflowY: "auto",
             overflowX: "hidden",
-            padding: "30px",
+            padding: "15px",
             borderRadius: "13px",
             backgroundColor: "rgba(0, 0, 0, 0.2)",
             display: "flex",
