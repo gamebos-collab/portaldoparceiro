@@ -1,6 +1,24 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .dashboard-bottom {
   padding: 10px;
   background-color: #000c3b;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .mapa-container {
@@ -85,7 +103,7 @@
 
 .popup-modal {
   position: absolute;
-  left: 150px; /* Alinha à esquerda */
+  left: 150px;
   top: 40%;
   transform: translate(0, -50%);
   background: #072d4d;
@@ -97,6 +115,7 @@
   color: #fff;
   box-shadow: 0 6px 32px rgba(0, 0, 0, 0.16);
 }
+
 .popup-modal-direita {
   position: absolute;
   top: 40%;
@@ -206,35 +225,29 @@
   font-weight: bold;
   cursor: pointer;
 }
-/* Estilo da barra de rolagem */
-.popup-content::-webkit-scrollbar {
-  width: 10px; /* largura da barra vertical */
-  height: 10px; /* altura da barra horizontal */
-}
 
-/* Estilo do trilho (track) */
+.popup-content::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
 .popup-content::-webkit-scrollbar-track {
   background: #18304b;
   border-radius: 4px;
 }
-
-/* Estilo do polegar (thumb) */
 .popup-content::-webkit-scrollbar-thumb {
   background-color: #ffe200;
   border-radius: 4px;
   border: 2px solid #f0f0f0;
 }
-
-/* Hover no polegar */
 .popup-content::-webkit-scrollbar-thumb:hover {
   background-color: #ffe200;
 }
 
 .gerente-regional-info {
-  background: #253a55; /* cor do fundo (mude para a cor que quiser) */
-  border-radius: 12px; /* bordas arredondadas */
-  padding: 5px 5px; /* tamanho/espessura do fundo */
-  width: 300px; /* largura mínima */
+  background: #253a55;
+  border-radius: 12px;
+  padding: 5px 5px;
+  width: 300px;
   border-radius: 10px;
   overflow-y: auto;
 }
@@ -261,16 +274,14 @@
 
 .popup-content {
   overflow-y: auto;
-  overflow-x: hidden; /* <-- Garante que não role para os lados */
+  overflow-x: hidden;
   max-width: 100%;
   box-sizing: border-box;
+  max-height: 80vh;
 }
+
 .body-popup-ativo,
 body.body-popup-ativo {
   overflow: hidden !important;
   height: 100vh !important;
-}
-.popup-content {
-  overflow-y: auto;
-  max-height: 80vh;
 }

@@ -183,7 +183,7 @@ export default function Home() {
   const [showPopup, setShowPopup] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState("visao");
 
-  // Impede scroll no fundo quando popup está ativo
+  // Impede scroll do fundo quando popup está ativo
   useEffect(() => {
     if (showPopup) {
       document.body.classList.add("body-popup-ativo");
@@ -326,7 +326,7 @@ export default function Home() {
           border: "1px solid #ccc",
           borderRadius: "8px",
           backgroundColor: "#f9f9f9",
-          width: "30px",
+          width: "180px",
         }}
       >
         <div
@@ -337,7 +337,7 @@ export default function Home() {
         </div>
         <div
           className="bos-quantidade"
-          style={{ margin: "8px 0", color: "#ffffffff" }}
+          style={{ margin: "8px 0", color: "#000" }}
         >
           {bosCentralizadora.length} B.O
         </div>
@@ -349,7 +349,7 @@ export default function Home() {
             borderRadius: "4px",
             border: "none",
             backgroundColor: "#072d4d",
-            color: "#072d4d",
+            color: "#fff",
             cursor: "pointer",
           }}
         >
@@ -374,7 +374,7 @@ export default function Home() {
               border: "1px solid #ccc",
               borderRadius: "8px",
               backgroundColor: "#f9f9f9",
-              width: "30px",
+              width: "180px",
             }}
           >
             <div
@@ -385,7 +385,7 @@ export default function Home() {
             </div>
             <div
               className="bos-quantidade"
-              style={{ margin: "8px 0", color: "#ffffffff" }}
+              style={{ margin: "8px 0", color: "#000" }}
             >
               {count} B.O
             </div>
@@ -397,7 +397,7 @@ export default function Home() {
                 borderRadius: "4px",
                 border: "none",
                 backgroundColor: "#072d4d",
-                color: "#072d4d",
+                color: "#fff",
                 cursor: "pointer",
               }}
             >
@@ -676,9 +676,12 @@ export default function Home() {
   };
 
   return (
-    <div className="dashboard-page">
+    <div
+      className="dashboard-page"
+      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+    >
       <div className="dashboard-top"></div>
-      <div className="dashboard-bottom">
+      <div className="dashboard-bottom" style={{ flex: 1 }}>
         <div className="mapa-container" style={{ position: "relative" }}>
           {showPopup && (
             <div>
