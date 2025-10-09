@@ -539,7 +539,7 @@ export default function Home() {
             right: "1%",
             width: "750px",
             maxWidth: "100vw",
-            height: "500px",
+            height: "400px",
             overflowY: "auto",
             overflowX: "hidden", // <-- AJUSTE CRUCIAL
             padding: "15px",
@@ -558,7 +558,7 @@ export default function Home() {
               position: "relative",
               width: "100%",
               maxWidth: "750px",
-              height: "500px",
+              height: "400px",
               overflowY: "auto",
               overflowX: "hidden", // <-- AJUSTE CRUCIAL
               backgroundColor: "#000c3b",
