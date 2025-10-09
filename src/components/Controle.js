@@ -183,6 +183,16 @@ export default function Home() {
   const [showPopup, setShowPopup] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState("visao");
 
+  // Impede scroll no fundo quando popup está ativo
+  useEffect(() => {
+    if (showPopup) {
+      document.body.classList.add("body-popup-ativo");
+    } else {
+      document.body.classList.remove("body-popup-ativo");
+    }
+    return () => document.body.classList.remove("body-popup-ativo");
+  }, [showPopup]);
+
   useEffect(() => {
     const carregarExcel = async () => {
       try {
@@ -435,15 +445,9 @@ export default function Home() {
   };
 
   // Adicione estas funções para evitar o erro "not defined"
-  const renderBOsCriticos = () => {
-    return <div>Conteúdo de B.O's Críticos</div>;
-  };
-  const renderBOsRevercoes = () => {
-    return <div>Conteúdo de Reversões</div>;
-  };
-  const renderBOsBaixados = () => {
-    return <div>Conteúdo de B.O's Baixados</div>;
-  };
+  const renderBOsCriticos = () => <div>Conteúdo de B.O's Críticos</div>;
+  const renderBOsRevercoes = () => <div>Conteúdo de Reversões</div>;
+  const renderBOsBaixados = () => <div>Conteúdo de B.O's Baixados</div>;
 
   // Renderiza o popup
   const renderPopup = () => {
@@ -541,7 +545,7 @@ export default function Home() {
             maxWidth: "100vw",
             height: "450px",
             overflowY: "auto",
-            overflowX: "hidden", // <-- AJUSTE CRUCIAL
+            overflowX: "hidden",
             padding: "15px",
             borderRadius: "3px",
             backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -560,7 +564,7 @@ export default function Home() {
               maxWidth: "750px",
               height: "450px",
               overflowY: "auto",
-              overflowX: "hidden", // <-- AJUSTE CRUCIAL
+              overflowX: "hidden",
               backgroundColor: "#000c3b",
               borderRadius: "2px",
               padding: "10px",
@@ -650,10 +654,8 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
             {/* Conteúdo da aba ativa */}
             <div className="conteudo-aba">{renderAbaConteudo()}</div>
-
             {/* Instrução para fechar */}
             <p
               className="popup-esc"

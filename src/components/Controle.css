@@ -1,11 +1,10 @@
 .dashboard-bottom {
-  padding: 40px;
+  padding: 10px;
   background-color: #000c3b;
 }
 
 .mapa-container {
   width: 100%;
-  min-height: 600px;
   background: #000c3b;
   border-radius: 14px;
   box-shadow: 0 6px 32px rgba(248, 3, 3, 0);
@@ -265,4 +264,13 @@
   overflow-x: hidden; /* <-- Garante que não role para os lados */
   max-width: 100%;
   box-sizing: border-box;
+}
+.body-popup-ativo,
+body.body-popup-ativo {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+.popup-content {
+  overflow-y: auto;
+  max-height: 80vh;
 }
