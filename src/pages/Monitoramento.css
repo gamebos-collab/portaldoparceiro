@@ -45,7 +45,7 @@
   background: #1c2957;
   border-radius: 18px;
   padding: 22px 38px;
-  min-width: 100px;
+  min-width: 50px;
   text-align: center;
   box-shadow: 0 2px 22px rgba(0, 0, 0, 0.13);
 }
