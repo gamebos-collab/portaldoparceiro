@@ -102,6 +102,7 @@
 .unidades-ofensoras-table th,
 .unidades-ofensoras-table td {
   padding: 8px 10px;
+  color: #ffffff;
   text-align: center;
   font-size: 0.97rem;
 }
@@ -320,4 +321,10 @@
     padding: 14px 12px;
     min-width: 90px;
   }
+}
+.unidades-ofensoras-table td:nth-child(1) {
+  color: #000000; /* vermelho */
+  font-weight: bold; /* negrito */
+  font-size: 30px;
+  text-align: center; /* alinhamento à direita */
 }

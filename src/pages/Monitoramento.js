@@ -354,22 +354,69 @@ export default function Monitoramento() {
     },
   ];
 
-  // DADOS FICTÍCIOS PARA GRÁFICO MENSAL (pode ser substituído pelo Excel depois)
-  const bosPorMesFicticio = [
-    { mes: "Jan", bos: 17 },
-    { mes: "Fev", bos: 22 },
-    { mes: "Mar", bos: 35 },
-    { mes: "Abr", bos: 20 },
-    { mes: "Mai", bos: 29 },
-    { mes: "Jun", bos: 32 },
-    { mes: "Jul", bos: 31 },
-    { mes: "Ago", bos: 27 },
-    { mes: "Set", bos: 15 },
-    { mes: "Out", bos: 25 },
-    { mes: "Nov", bos: 19 },
-    { mes: "Dez", bos: 23 },
-  ];
+  // Cole ESTA FUNÇÃO ANTES do uso de nomeMes
+  function nomeMes(num) {
+    const nomes = [
+      "Jan",
+      "Fev",
+      "Mar",
+      "Abr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Set",
+      "Out",
+      "Nov",
+      "Dez",
+    ];
+    return nomes[num - 1];
+  }
+  const ANO_GRAFICO = "2025";
+  const bosPorMes = Array.from({ length: 12 }, (_, idx) => ({
+    mes: nomeMes(idx + 1),
+    bos: 0,
+  }));
 
+  dados.forEach((d) => {
+    let dt = d["Emissão"];
+    if (!dt) return;
+    let dataStr = "";
+
+    if (typeof dt === "number") {
+      dataStr = XLSX.SSF.format("yyyy-mm-dd", dt);
+    } else if (typeof dt === "string") {
+      dt = dt.trim();
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(dt)) {
+        // dd/mm/yyyy
+        const [dia, mes, ano] = dt.split("/");
+        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+      } else if (/^\d{2}\/\d{2}\/\d{2}$/.test(dt)) {
+        // dd/mm/yy
+        let [dia, mes, ano] = dt.split("/");
+        ano = ano.length === 2 ? "20" + ano : ano;
+        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dt)) {
+        // yyyy-mm-dd
+        dataStr = dt;
+      } else if (/^\d{2}-\d{2}-\d{4}$/.test(dt)) {
+        // dd-mm-yyyy
+        const [dia, mes, ano] = dt.split("-");
+        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+      } else if (/^\d{2}-\d{2}-\d{2}$/.test(dt)) {
+        // dd-mm-yy
+        let [dia, mes, ano] = dt.split("-");
+        ano = ano.length === 2 ? "20" + ano : ano;
+        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+      }
+    }
+
+    if (!dataStr) return;
+    const [ano, mes] = dataStr.split("-");
+    if (ano !== ANO_GRAFICO) return;
+    const mesIdx = Number(mes) - 1;
+    if (mesIdx >= 0 && mesIdx <= 11) bosPorMes[mesIdx].bos++;
+  });
   // Gráfico por filial
   const bosPorFilial = Object.entries(
     dados.reduce((acc, curr) => {
@@ -442,7 +489,7 @@ export default function Monitoramento() {
               {/* TOP 10 PARCEIROS MAIS OFENSORES */}
               <div className="unidades-ofensoras-wrapper">
                 <h3 className="unidades-ofensoras-titulo">
-                  Parceiros mais ofensores (Top 10)
+                  <i>PARCEIROS MAIS OFENSORES</i>
                 </h3>
                 <div className="unidades-ofensoras-table-container">
                   <table className="unidades-ofensoras-table">
@@ -510,7 +557,7 @@ export default function Monitoramento() {
                 <div className="evolucao-mensal-grafico-container">
                   <ResponsiveContainer width="100%" height={220}>
                     <LineChart
-                      data={bosPorMesFicticio}
+                      data={bosPorMes}
                       margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
