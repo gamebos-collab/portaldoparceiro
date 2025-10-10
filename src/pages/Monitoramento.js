@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
   LineChart,
   Line,
   CartesianGrid,
+  Bar,
+  XAxis,
+  YAxis,
 } from "recharts";
 import "./Monitoramento.css";
 
-const COLORS = ["#3f51b5", "#ff9800", "#4caf50", "#f44336", "#00bcd4"];
 const riscoColors = ["#fffbe7", "#fff0b3", "#ffd98a", "#ff4242"];
 
 const parceirosPorCentralizadora = {
@@ -204,8 +199,12 @@ export default function Monitoramento() {
         if (abaRisco) {
           const ref = abaRisco["!ref"];
           const range = XLSX.utils.decode_range(ref);
-          // Lê todas as linhas de D8 até a última linha preenchida na coluna D
-          let linhas = [];
+          let riscos = [
+            { risco: 3, clientes: [] },
+            { risco: 2, clientes: [] },
+            { risco: 1, clientes: [] },
+          ];
+          let riscoAtual = null;
           for (let r = 7; r <= range.e.r; r++) {
             // linha 8 no Excel = index 7
             const celulaD = abaRisco[`D${r + 1}`];
@@ -213,62 +212,31 @@ export default function Monitoramento() {
             const celulaF = abaRisco[`F${r + 1}`];
             const celulaG = abaRisco[`G${r + 1}`];
             const celulaH = abaRisco[`H${r + 1}`];
-            // para de ler se encontrar "Total Geral"
-            if (
-              celulaD &&
-              typeof celulaD.v === "string" &&
-              celulaD.v.trim().toLowerCase().startsWith("total")
-            )
-              break;
-            // ignora linhas totalmente vazias
-            if (
-              (!celulaD || !celulaD.v) &&
-              (!celulaE || !celulaE.v) &&
-              (!celulaF || !celulaF.v) &&
-              (!celulaG || !celulaG.v) &&
-              (!celulaH || !celulaH.v)
-            )
-              continue;
-            linhas.push({
-              risco: celulaD ? String(celulaD.v).trim() : "",
-              nome: celulaE ? String(celulaE.v).trim() : "",
-              dias5: Number(celulaF ? celulaF.v : 0) || 0,
-              dias10: Number(celulaG ? celulaG.v : 0) || 0,
-              dias15: Number(celulaH ? celulaH.v : 0) || 0,
-              acima15: Number(abaRisco[`I${r + 1}`]?.v || 0) || 0,
-            });
-          }
-          // Agora separe por blocos de risco
-          const riscos = [
-            { risco: 3, clientes: [] },
-            { risco: 2, clientes: [] },
-            { risco: 1, clientes: [] },
-          ];
-          let riscoAtual = null;
-          linhas.forEach((linha) => {
-            if (/^risco\s*3$/i.test(linha.risco)) {
+
+            const valorD = celulaD ? String(celulaD.v).trim() : "";
+            if (valorD.toLowerCase().startsWith("total")) break;
+            if (/^risco\s*3$/i.test(valorD)) {
               riscoAtual = 3;
-              return;
+              continue;
             }
-            if (/^risco\s*2$/i.test(linha.risco)) {
+            if (/^risco\s*2$/i.test(valorD)) {
               riscoAtual = 2;
-              return;
+              continue;
             }
-            if (/^risco\s*1$/i.test(linha.risco)) {
+            if (/^risco\s*1$/i.test(valorD)) {
               riscoAtual = 1;
-              return;
+              continue;
             }
-            // ignora linhas sem cliente
-            if (!linha.nome || !riscoAtual) return;
+            if (!valorD || !riscoAtual) continue;
             const idx = 3 - riscoAtual;
             riscos[idx].clientes.push({
-              nome: linha.nome,
-              dias5: linha.dias5,
-              dias10: linha.dias10,
-              dias15: linha.dias15,
-              acima15: linha.acima15,
+              nome: valorD,
+              dias5: Number(celulaE ? celulaE.v : 0) || 0,
+              dias10: Number(celulaF ? celulaF.v : 0) || 0,
+              dias15: Number(celulaG ? celulaG.v : 0) || 0,
+              acima15: Number(celulaH ? celulaH.v : 0) || 0,
             });
-          });
+          }
           setClientesRiscoReais(riscos);
         }
       } catch (err) {
@@ -432,24 +400,15 @@ export default function Monitoramento() {
     if (mesIdx >= 0 && mesIdx <= 11) bosPorMes[mesIdx].bos++;
   });
 
-  const bosPorFilial = Object.entries(
-    dados.reduce((acc, curr) => {
-      acc[curr.Filial] = (acc[curr.Filial] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([filial, total]) => ({ filial, total }));
-
-  const bosPorParceiro = Object.entries(
-    dados.reduce((acc, curr) => {
-      acc[curr.Parceiro] = (acc[curr.Parceiro] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([parceiro, total]) => ({ parceiro, total }));
-
-  const statusData = [
-    { name: "Abertos Hoje", value: totalAbertosHoje },
-    { name: "Fechados Hoje", value: totalFechadosHoje },
-  ];
+  // --- CSS para exibir os quadros lado a lado ---
+  const clientesRiscoQuadrosStyle = {
+    display: "flex",
+    flexDirection: "row",
+    gap: "16px",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+  };
 
   return (
     <div className="monitoramento-page">
@@ -601,56 +560,10 @@ export default function Monitoramento() {
           {/* PARTE INFERIOR */}
           <div className="monitoramento-section monitoramento-inferior">
             <div className="monitoramento-graficos-e-tabela">
-              <div className="monitoramento-graficos">
-                <div className="grafico-card">
-                  <h3>B.Os por Filial</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={bosPorFilial}>
-                      <XAxis dataKey="filial" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="total" fill="#3f51b5" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="grafico-card">
-                  <h3>B.Os por Parceiro</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={bosPorParceiro}>
-                      <XAxis dataKey="parceiro" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="total" fill="#ff9800" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="grafico-card">
-                  <h3>Status dos B.Os</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={90}
-                        label
-                      >
-                        {statusData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Legend />
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="clientes-risco-cards-coluna">
+              <div
+                className="clientes-risco-cards-linha"
+                style={clientesRiscoQuadrosStyle}
+              >
                 {clientesRiscoReais.map((riscoItem) => (
                   <div
                     key={riscoItem.risco}
