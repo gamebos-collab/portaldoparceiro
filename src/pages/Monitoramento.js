@@ -20,7 +20,6 @@ import "./Monitoramento.css";
 const COLORS = ["#3f51b5", "#ff9800", "#4caf50", "#f44336", "#00bcd4"];
 const riscoColors = ["#fffbe7", "#fff0b3", "#ffd98a", "#ff4242"];
 
-// Centralizadoras e seus parceiros (para identificar)
 const parceirosPorCentralizadora = {
   CXS: ["ERE", "PFU", "VAC", "VER", "LGV"],
   POA: ["PEL", "NHA", "CMQ", "OSO", "PO2", "RIG", "LAJ", "CBN", "CAI", "GRA"],
@@ -160,6 +159,9 @@ export default function Monitoramento() {
   const [dados, setDados] = useState([]);
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(true);
+  const [clientesRiscoReais, setClientesRiscoReais] = useState([]);
+  const [rankingAnterior, setRankingAnterior] = useState([]);
+  const [hoveredOfensora, setHoveredOfensora] = useState(null);
 
   useEffect(() => {
     const carregarExcel = async () => {
@@ -172,13 +174,14 @@ export default function Monitoramento() {
         }
         const data = await res.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
+
+        // DADOS GERAIS
         const sheet = workbook.Sheets["Dados"];
         if (!sheet) {
           setErro("A aba 'Dados' não foi encontrada no Excel.");
           setLoading(false);
           return;
         }
-        // CABEÇALHO NA LINHA 10, dados começam na linha 11 (base 1 - Excel)
         const allRows = XLSX.utils.sheet_to_json(sheet, {
           header: 1,
           defval: "",
@@ -194,9 +197,82 @@ export default function Monitoramento() {
             });
             return obj;
           });
-        if (json.length) console.log("Primeira linha dos dados:", json[0]);
         setDados(json);
+
+        // CLIENTES EM RISCO (aba "Clientes em Risco")
+        const abaRisco = workbook.Sheets["Clientes em Risco"];
+        if (abaRisco) {
+          const ref = abaRisco["!ref"];
+          const range = XLSX.utils.decode_range(ref);
+          // Lê todas as linhas de D8 até a última linha preenchida na coluna D
+          let linhas = [];
+          for (let r = 7; r <= range.e.r; r++) {
+            // linha 8 no Excel = index 7
+            const celulaD = abaRisco[`D${r + 1}`];
+            const celulaE = abaRisco[`E${r + 1}`];
+            const celulaF = abaRisco[`F${r + 1}`];
+            const celulaG = abaRisco[`G${r + 1}`];
+            const celulaH = abaRisco[`H${r + 1}`];
+            // para de ler se encontrar "Total Geral"
+            if (
+              celulaD &&
+              typeof celulaD.v === "string" &&
+              celulaD.v.trim().toLowerCase().startsWith("total")
+            )
+              break;
+            // ignora linhas totalmente vazias
+            if (
+              (!celulaD || !celulaD.v) &&
+              (!celulaE || !celulaE.v) &&
+              (!celulaF || !celulaF.v) &&
+              (!celulaG || !celulaG.v) &&
+              (!celulaH || !celulaH.v)
+            )
+              continue;
+            linhas.push({
+              risco: celulaD ? String(celulaD.v).trim() : "",
+              nome: celulaE ? String(celulaE.v).trim() : "",
+              dias5: Number(celulaF ? celulaF.v : 0) || 0,
+              dias10: Number(celulaG ? celulaG.v : 0) || 0,
+              dias15: Number(celulaH ? celulaH.v : 0) || 0,
+              acima15: Number(abaRisco[`I${r + 1}`]?.v || 0) || 0,
+            });
+          }
+          // Agora separe por blocos de risco
+          const riscos = [
+            { risco: 3, clientes: [] },
+            { risco: 2, clientes: [] },
+            { risco: 1, clientes: [] },
+          ];
+          let riscoAtual = null;
+          linhas.forEach((linha) => {
+            if (/^risco\s*3$/i.test(linha.risco)) {
+              riscoAtual = 3;
+              return;
+            }
+            if (/^risco\s*2$/i.test(linha.risco)) {
+              riscoAtual = 2;
+              return;
+            }
+            if (/^risco\s*1$/i.test(linha.risco)) {
+              riscoAtual = 1;
+              return;
+            }
+            // ignora linhas sem cliente
+            if (!linha.nome || !riscoAtual) return;
+            const idx = 3 - riscoAtual;
+            riscos[idx].clientes.push({
+              nome: linha.nome,
+              dias5: linha.dias5,
+              dias10: linha.dias10,
+              dias15: linha.dias15,
+              acima15: linha.acima15,
+            });
+          });
+          setClientesRiscoReais(riscos);
+        }
       } catch (err) {
+        console.error("Erro ao processar o arquivo Excel:", err);
         setErro("Erro ao processar o arquivo Excel.");
       } finally {
         setLoading(false);
@@ -205,76 +281,65 @@ export default function Monitoramento() {
     carregarExcel();
   }, []);
 
-  const hojeStr = getTodayStr();
+  useEffect(() => {
+    const lastRanking = localStorage.getItem("parceirosRanking");
+    if (lastRanking) setRankingAnterior(JSON.parse(lastRanking));
+  }, []);
+
   // Colunas do Excel
   const COL_EMISSAO = "Emissão";
   const COL_DT_PARECER = "Dt Parecer";
   const COL_OCORRENCIA = "Ocorrência";
   const COL_DIAS_SEM_ACOMP = "Dias sem acompanhamento";
   const COL_RESP = "Resp";
-  const COL_CENTRALIZADORA = "Centralizadora";
   const COL_5 = "0 a 5";
   const COL_10 = "6 a 10";
   const COL_15 = "11 a 15";
   const COL_MAIS15 = "> 15";
 
-  // Total de B.Os (cada linha é um B.O.)
+  // Total de B.Os
   const totalBOs = dados.length;
+  const hojeStr = getTodayStr();
 
-  // B.Os abertos hoje (Emissão == hoje)
   const totalAbertosHoje = dados.filter((d) => {
     const dataAbertura = normalizaData(d[COL_EMISSAO]);
     return dataAbertura === hojeStr;
   }).length;
 
-  // B.Os fechados hoje (Dt Parecer == hoje)
   const totalFechadosHoje = dados.filter((d) => {
     const dataFechamento = normalizaData(d[COL_DT_PARECER]);
     return dataFechamento === hojeStr;
   }).length;
 
-  // B.Os sem parecer (Dias sem acompanhamento == "Sem Acompanhamento")
   const totalSemParecer = dados.filter(
     (d) =>
       (d[COL_DIAS_SEM_ACOMP] || "").toString().trim().toLowerCase() ===
       "sem acompanhamento"
   ).length;
 
-  // B.Os Falta Total (Ocorrência == "FALTA TOTAL")
   const totalFaltaTotal = dados.filter(
     (d) =>
       (d[COL_OCORRENCIA] || "").toString().trim().toUpperCase() ===
       "FALTA TOTAL"
   ).length;
 
-  // B.Os Avaria Total (Ocorrência == "AVARIA TOTAL")
   const totalAvariaTotal = dados.filter(
     (d) =>
       (d[COL_OCORRENCIA] || "").toString().trim().toUpperCase() ===
       "AVARIA TOTAL"
   ).length;
 
-  // Veja todos os valores que estão vindo da coluna Emissão
-  console.log("Todos os valores da coluna Emissão:");
-  dados.forEach((d, i) => {
-    if (d.Emissão) console.log(`[${i}]`, d.Emissão, typeof d.Emissão);
-  });
-
-  // ======= TOP 10 PARCEIROS MAIS OFENSORES =======
   function getSum(n) {
     return isNaN(Number(n)) ? 0 : Number(n);
   }
-  if (dados.length) console.log(dados[0]);
   const parceirosRanking = {};
   dados.forEach((d) => {
     const parceiro = d[COL_RESP];
     if (!parceiro) return;
-    // Descobrir a centralizadora do parceiro:
     let centralizadora = "";
     Object.entries(parceirosPorCentralizadora).forEach(([cent, parceiros]) => {
       if (parceiros.includes(parceiro)) centralizadora = cent;
     });
-    // Pular se este é uma centralizadora (não parceiro)
     if (Object.keys(parceirosPorCentralizadora).includes(parceiro)) return;
     if (!parceirosRanking[parceiro]) {
       parceirosRanking[parceiro] = {
@@ -284,7 +349,7 @@ export default function Monitoramento() {
         dias10: 0,
         dias15: 0,
         mais15: 0,
-        totalBOs: 0, // Soma das 4 faixas
+        totalBOs: 0,
         status: "up",
         oldRank: null,
       };
@@ -293,7 +358,6 @@ export default function Monitoramento() {
     parceirosRanking[parceiro].dias10 += getSum(d[COL_10]);
     parceirosRanking[parceiro].dias15 += getSum(d[COL_15]);
     parceirosRanking[parceiro].mais15 += getSum(d[COL_MAIS15]);
-    // Soma total dos B.Os abertos (todas as faixas)
     parceirosRanking[parceiro].totalBOs =
       parceirosRanking[parceiro].dias5 +
       parceirosRanking[parceiro].dias10 +
@@ -301,25 +365,18 @@ export default function Monitoramento() {
       parceirosRanking[parceiro].mais15;
   });
 
-  // Pega o ranking anterior do localStorage para desenhar a seta de ranking
-  const [rankingAnterior, setRankingAnterior] = useState([]);
-  useEffect(() => {
-    const lastRanking = localStorage.getItem("parceirosRanking");
-    if (lastRanking) setRankingAnterior(JSON.parse(lastRanking));
-  }, []);
-  // Calcula ranking atual (agora ordenando por totalBOs)
   const rankingAtual = Object.values(parceirosRanking)
     .sort((a, b) => b.totalBOs - a.totalBOs)
     .slice(0, 10);
-  // Atualiza o ranking no localStorage para próxima visualização
+
   useEffect(() => {
     localStorage.setItem(
       "parceirosRanking",
       JSON.stringify(rankingAtual.map((x) => x.parceiro))
     );
-  }, [dados.length]); // só salva quando mudar os dados
+    // eslint-disable-next-line
+  }, [dados.length]);
 
-  // Adiciona status de subida/descida
   rankingAtual.forEach((item, idx) => {
     if (!rankingAnterior.length) {
       item.status = "up";
@@ -334,31 +391,6 @@ export default function Monitoramento() {
       }
     }
   });
-
-  // DADOS FICTÍCIOS PARA CLIENTES EM RISCO
-  const clientesRiscoFicticio = [
-    {
-      risco: 3,
-      clientes: [
-        { nome: "Cliente Alfa", dias5: 2, dias10: 1, dias15: 0, acima15: 1 },
-        { nome: "Cliente Beta", dias5: 0, dias10: 0, dias15: 2, acima15: 2 },
-      ],
-    },
-    {
-      risco: 2,
-      clientes: [
-        { nome: "Cliente Gama", dias5: 1, dias10: 2, dias15: 0, acima15: 0 },
-        { nome: "Cliente Delta", dias5: 0, dias10: 2, dias15: 1, acima15: 0 },
-      ],
-    },
-    {
-      risco: 1,
-      clientes: [
-        { nome: "Cliente Epsilon", dias5: 3, dias10: 0, dias15: 1, acima15: 0 },
-        { nome: "Cliente Zeta", dias5: 2, dias10: 1, dias15: 1, acima15: 0 },
-      ],
-    },
-  ];
 
   function nomeMes(num) {
     const nomes = [
@@ -385,17 +417,14 @@ export default function Monitoramento() {
   }));
 
   dados.forEach((d) => {
-    const valor = d["Emissão"];
+    const valor = d[COL_EMISSAO];
     if (!valor) return;
-
     let dataStr = "";
     if (typeof valor === "number") {
       dataStr = XLSX.SSF.format("yyyy-mm-dd", valor);
-      console.log("Linha convertida:", valor, "->", dataStr);
     } else if (typeof valor === "string") {
       dataStr = valor;
     }
-
     if (!dataStr) return;
     const [ano, mes] = dataStr.split("-");
     if (ano !== ANO_GRAFICO) return;
@@ -403,9 +432,6 @@ export default function Monitoramento() {
     if (mesIdx >= 0 && mesIdx <= 11) bosPorMes[mesIdx].bos++;
   });
 
-  // Veja o array do gráfico no console
-  console.log("bosPorMes final:", bosPorMes);
-  // Gráfico por filial
   const bosPorFilial = Object.entries(
     dados.reduce((acc, curr) => {
       acc[curr.Filial] = (acc[curr.Filial] || 0) + 1;
@@ -413,7 +439,6 @@ export default function Monitoramento() {
     }, {})
   ).map(([filial, total]) => ({ filial, total }));
 
-  // Gráfico por parceiro
   const bosPorParceiro = Object.entries(
     dados.reduce((acc, curr) => {
       acc[curr.Parceiro] = (acc[curr.Parceiro] || 0) + 1;
@@ -421,13 +446,10 @@ export default function Monitoramento() {
     }, {})
   ).map(([parceiro, total]) => ({ parceiro, total }));
 
-  // Gráfico de status
   const statusData = [
     { name: "Abertos Hoje", value: totalAbertosHoje },
     { name: "Fechados Hoje", value: totalFechadosHoje },
   ];
-
-  const [hoveredOfensora, setHoveredOfensora] = useState(null);
 
   return (
     <div className="monitoramento-page">
@@ -472,7 +494,6 @@ export default function Monitoramento() {
                 <span>{totalAvariaTotal}</span>
               </div>
             </div>
-
             <div className="monitoramento-superior-row">
               {/* TOP 10 PARCEIROS MAIS OFENSORES */}
               <div className="unidades-ofensoras-wrapper">
@@ -577,9 +598,6 @@ export default function Monitoramento() {
               {/* FIM Card de evolução por mês */}
             </div>
           </div>
-          <br />
-          <br />
-          <br />
           {/* PARTE INFERIOR */}
           <div className="monitoramento-section monitoramento-inferior">
             <div className="monitoramento-graficos-e-tabela">
@@ -633,7 +651,7 @@ export default function Monitoramento() {
                 </div>
               </div>
               <div className="clientes-risco-cards-coluna">
-                {clientesRiscoFicticio.map((riscoItem) => (
+                {clientesRiscoReais.map((riscoItem) => (
                   <div
                     key={riscoItem.risco}
                     className="clientes-risco-card clientes-risco-margin"
