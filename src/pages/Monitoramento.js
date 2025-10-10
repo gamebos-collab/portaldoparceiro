@@ -20,90 +20,141 @@ import "./Monitoramento.css";
 const COLORS = ["#3f51b5", "#ff9800", "#4caf50", "#f44336", "#00bcd4"];
 const riscoColors = ["#fffbe7", "#fff0b3", "#ffd98a", "#ff4242"];
 
-// DADOS FICTÍCIOS PARA CLIENTES EM RISCO
-const clientesRiscoFicticio = [
-  {
-    risco: 3,
-    clientes: [
-      { nome: "Cliente Alfa", dias5: 2, dias10: 1, dias15: 0, acima15: 1 },
-      { nome: "Cliente Beta", dias5: 0, dias10: 0, dias15: 2, acima15: 2 },
-    ],
-  },
-  {
-    risco: 2,
-    clientes: [
-      { nome: "Cliente Gama", dias5: 1, dias10: 2, dias15: 0, acima15: 0 },
-      { nome: "Cliente Delta", dias5: 0, dias10: 2, dias15: 1, acima15: 0 },
-    ],
-  },
-  {
-    risco: 1,
-    clientes: [
-      { nome: "Cliente Epsilon", dias5: 3, dias10: 0, dias15: 1, acima15: 0 },
-      { nome: "Cliente Zeta", dias5: 2, dias10: 1, dias15: 1, acima15: 0 },
-    ],
-  },
-];
+// Centralizadoras e seus parceiros (para identificar)
+const parceirosPorCentralizadora = {
+  CXS: ["ERE", "PFU", "VAC", "VER", "LGV"],
+  POA: ["PEL", "NHA", "CMQ", "OSO", "PO2", "RIG", "LAJ", "CBN", "CAI", "GRA"],
+  SMA: [
+    "ALE",
+    "BAG",
+    "FRW",
+    "IJU",
+    "QUI",
+    "LIV",
+    "SRO",
+    "SGB",
+    "SNT",
+    "SAR",
+    "URU",
+    "TPS",
+    "SCS",
+    "IBA",
+  ],
+  BLU: ["BRQ", "CHA", "JBA", "CRI", "RDS", "IBM", "TUB", "SMO"],
+  JVL: ["JGS", "SBS"],
+  FLN: [],
+  PPY: ["VAG"],
+  BHZ: ["GVR", "MOC", "JAN", "DIV", "STL", "JML", "CVL", "IPN", "TEO"],
+  CWB: [
+    "LGS",
+    "FBL",
+    "FOZ",
+    "GVA",
+    "MGA",
+    "LPR",
+    "PTB",
+    "PTG",
+    "RNG",
+    "UVT",
+    "ADR",
+    "MCR",
+  ],
+  LDA: ["NPR", "LDI", "PVI", "UMU"],
+  CAS: [],
+  SOR: ["ITP"],
+  RIP: ["FCA", "PTF", "OCA", "PSS"],
+  SUM: [],
+  SÃO: [
+    "REG",
+    "SAN",
+    "SJK",
+    "RIO",
+    "NOF",
+    "BRM",
+    "TRS",
+    "GDR",
+    "CAW",
+    "SPD",
+    "CGR",
+    "CGB",
+  ],
+  GRU: [
+    "AUX",
+    "GPI",
+    "PMW",
+    "PSO",
+    "RBR",
+    "PVH",
+    "MAO",
+    "BVB",
+    "BEL",
+    "MCP",
+    "FOR",
+    "PNZ",
+    "QBX",
+    "THE",
+    "SLZ",
+    "IMP",
+  ],
+  BAU: ["BIR", "MAR", "PRU", "TUP", "ARA", "AVR", "OUS", "PEN", "FER"],
+  CRA: [],
+  MTZ: ["MTZ"],
+  VIX: ["ESI", "COL", "MAN", "SRR"],
+  CPN: [
+    "JDF",
+    "ITR",
+    "SJP",
+    "PIR",
+    "CAT",
+    "UBE",
+    "CW3",
+    "VAL",
+    "BSB",
+    "LCE",
+    "GYN",
+    "NWF",
+    "RAD",
+    "RIT",
+    "DEL",
+    "LUZ",
+    "USE",
+    "SPR",
+    "ALL",
+    "AJU",
+    "MCZ",
+    "REC",
+    "JPA",
+    "NAT",
+    "VDC",
+    "SSA",
+    "FEC",
+    "PTM",
+    "UNA",
+  ],
+};
 
-// DADOS FICTÍCIOS PARA UNIDADES MAIS OFENSORAS
-const unidadesOfensorasFicticio = [
-  {
-    centralizadora: "CPN",
-    parceiro: "SSA",
-    bos: 35,
-    dias5: 10,
-    dias10: 8,
-    dias15: 7,
-    mais15: 10,
-    status: "up",
-  },
-  {
-    centralizadora: "JDF",
-    parceiro: "SSA",
-    bos: 28,
-    dias5: 12,
-    dias10: 8,
-    dias15: 4,
-    mais15: 4,
-    status: "down",
-  },
-  {
-    centralizadora: "NAT",
-    parceiro: "SSA",
-    bos: 22,
-    dias5: 8,
-    dias10: 5,
-    dias15: 4,
-    mais15: 5,
-    status: "down",
-  },
-  {
-    centralizadora: "CPN",
-    parceiro: "JDF",
-    bos: 19,
-    dias5: 7,
-    dias10: 2,
-    dias15: 3,
-    mais15: 7,
-    status: "up",
-  },
-];
-
-// DADOS FICTÍCIOS PARA GRÁFICO MENSAL (pode ser substituído pelo Excel depois)
-const bosPorMesFicticio = [
-  { mes: "Jan", bos: 17 },
-  { mes: "Fev", bos: 22 },
-  { mes: "Mar", bos: 35 },
-  { mes: "Abr", bos: 20 },
-  { mes: "Mai", bos: 29 },
-  { mes: "Jun", bos: 32 },
-  { mes: "Jul", bos: 31 },
-  { mes: "Ago", bos: 27 },
-  { mes: "Set", bos: 15 },
-  { mes: "Out", bos: 25 },
-  { mes: "Nov", bos: 19 },
-  { mes: "Dez", bos: 23 },
-];
+function normalizaData(d) {
+  if (!d) return "";
+  if (!isNaN(d) && typeof d !== "string") {
+    return XLSX.SSF.format("yyyy-mm-dd", d);
+  }
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+    const [dia, mes, ano] = d.split("/");
+    return `${ano}-${mes}-${dia}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(d)) {
+    const [dia, mes, ano] = d.split("-");
+    return `${ano}-${mes}-${dia}`;
+  }
+  return d.slice(0, 10);
+}
+function getTodayStr() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = ("0" + (now.getMonth() + 1)).slice(-2);
+  const dd = ("0" + now.getDate()).slice(-2);
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 export default function Monitoramento() {
   const [dados, setDados] = useState([]);
@@ -113,7 +164,7 @@ export default function Monitoramento() {
   useEffect(() => {
     const carregarExcel = async () => {
       try {
-        const res = await fetch("/kpiparceiro.xlsx");
+        const res = await fetch("/kpiparceiro.xlsm");
         if (!res.ok) {
           setErro("Não foi possível carregar o arquivo Excel.");
           setLoading(false);
@@ -121,9 +172,29 @@ export default function Monitoramento() {
         }
         const data = await res.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        const sheet = workbook.Sheets["Dados"];
+        if (!sheet) {
+          setErro("A aba 'Dados' não foi encontrada no Excel.");
+          setLoading(false);
+          return;
+        }
+        // CABEÇALHO NA LINHA 10, dados começam na linha 11 (base 1 - Excel)
+        const allRows = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: "",
+        });
+        const headerRow = allRows[9];
+        const dataRows = allRows.slice(10);
+        const json = dataRows
+          .filter((row) => row.some((cell) => cell !== "")) // remove linhas completamente vazias
+          .map((row) => {
+            const obj = {};
+            headerRow.forEach((col, i) => {
+              obj[col] = row[i];
+            });
+            return obj;
+          });
+        if (json.length) console.log("Primeira linha dos dados:", json[0]);
         setDados(json);
       } catch (err) {
         setErro("Erro ao processar o arquivo Excel.");
@@ -134,10 +205,169 @@ export default function Monitoramento() {
     carregarExcel();
   }, []);
 
-  // Geração de métricas
+  const hojeStr = getTodayStr();
+  // Colunas do Excel
+  const COL_EMISSAO = "Emissão";
+  const COL_DT_PARECER = "Dt Parecer";
+  const COL_OCORRENCIA = "Ocorrência";
+  const COL_DIAS_SEM_ACOMP = "Dias sem acompanhamento";
+  const COL_RESP = "Resp";
+  const COL_CENTRALIZADORA = "Centralizadora";
+  const COL_5 = "5 dias";
+  const COL_10 = "10 dias";
+  const COL_15 = "15 dias";
+  const COL_MAIS15 = "acima 15";
+
+  // Total de B.Os (cada linha é um B.O.)
   const totalBOs = dados.length;
-  const totalAbertos = dados.filter((d) => d.Status === "Aberto").length;
-  const totalFechados = dados.filter((d) => d.Status === "Fechado").length;
+
+  // B.Os abertos hoje (Emissão == hoje)
+  const totalAbertosHoje = dados.filter((d) => {
+    const dataAbertura = normalizaData(d[COL_EMISSAO]);
+    return dataAbertura === hojeStr;
+  }).length;
+
+  // B.Os fechados hoje (Dt Parecer == hoje)
+  const totalFechadosHoje = dados.filter((d) => {
+    const dataFechamento = normalizaData(d[COL_DT_PARECER]);
+    return dataFechamento === hojeStr;
+  }).length;
+
+  // B.Os sem parecer (Dias sem acompanhamento == "Sem Acompanhamento")
+  const totalSemParecer = dados.filter(
+    (d) =>
+      (d[COL_DIAS_SEM_ACOMP] || "").toString().trim().toLowerCase() ===
+      "sem acompanhamento"
+  ).length;
+
+  // B.Os Falta Total (Ocorrência == "FALTA TOTAL")
+  const totalFaltaTotal = dados.filter(
+    (d) =>
+      (d[COL_OCORRENCIA] || "").toString().trim().toUpperCase() ===
+      "FALTA TOTAL"
+  ).length;
+
+  // B.Os Avaria Total (Ocorrência == "AVARIA TOTAL")
+  const totalAvariaTotal = dados.filter(
+    (d) =>
+      (d[COL_OCORRENCIA] || "").toString().trim().toUpperCase() ===
+      "AVARIA TOTAL"
+  ).length;
+
+  // ======= TOP 10 PARCEIROS MAIS OFENSORES =======
+  // Soma de BOs em aberto em 5, 10, 15 e acima de 15 dias por parceiro
+  function getSum(n) {
+    return isNaN(Number(n)) ? 0 : Number(n);
+  }
+  const parceirosRanking = {};
+  dados.forEach((d) => {
+    const parceiro = d[COL_RESP];
+    if (!parceiro) return;
+    // Descobrir a centralizadora do parceiro:
+    let centralizadora = "";
+    Object.entries(parceirosPorCentralizadora).forEach(([cent, parceiros]) => {
+      if (parceiros.includes(parceiro)) centralizadora = cent;
+    });
+    // Pular se este é uma centralizadora (não parceiro)
+    if (Object.keys(parceirosPorCentralizadora).includes(parceiro)) return;
+    if (!parceirosRanking[parceiro]) {
+      parceirosRanking[parceiro] = {
+        parceiro,
+        centralizadora,
+        bos: 0,
+        dias5: 0,
+        dias10: 0,
+        dias15: 0,
+        mais15: 0,
+        status: "up",
+        oldRank: null,
+      };
+    }
+    parceirosRanking[parceiro].dias5 += getSum(d[COL_5]);
+    parceirosRanking[parceiro].dias10 += getSum(d[COL_10]);
+    parceirosRanking[parceiro].dias15 += getSum(d[COL_15]);
+    parceirosRanking[parceiro].mais15 += getSum(d[COL_MAIS15]);
+    parceirosRanking[parceiro].bos +=
+      getSum(d[COL_5]) +
+      getSum(d[COL_10]) +
+      getSum(d[COL_15]) +
+      getSum(d[COL_MAIS15]);
+  });
+
+  // Pega o ranking anterior do localStorage para desenhar a seta de ranking
+  const [rankingAnterior, setRankingAnterior] = useState([]);
+  useEffect(() => {
+    const lastRanking = localStorage.getItem("parceirosRanking");
+    if (lastRanking) setRankingAnterior(JSON.parse(lastRanking));
+  }, []);
+  // Calcula ranking atual
+  const rankingAtual = Object.values(parceirosRanking)
+    .sort((a, b) => b.bos - a.bos)
+    .slice(0, 10);
+  // Atualiza o ranking no localStorage para próxima visualização
+  useEffect(() => {
+    localStorage.setItem(
+      "parceirosRanking",
+      JSON.stringify(rankingAtual.map((x) => x.parceiro))
+    );
+  }, [dados.length]); // só salva quando mudar os dados
+
+  // Adiciona status de subida/descida
+  rankingAtual.forEach((item, idx) => {
+    if (!rankingAnterior.length) {
+      item.status = "up";
+    } else {
+      const posAnterior = rankingAnterior.indexOf(item.parceiro);
+      if (posAnterior === -1 || posAnterior > idx) {
+        item.status = "up";
+      } else if (posAnterior < idx) {
+        item.status = "down";
+      } else {
+        item.status = "same";
+      }
+    }
+  });
+
+  // DADOS FICTÍCIOS PARA CLIENTES EM RISCO
+  const clientesRiscoFicticio = [
+    {
+      risco: 3,
+      clientes: [
+        { nome: "Cliente Alfa", dias5: 2, dias10: 1, dias15: 0, acima15: 1 },
+        { nome: "Cliente Beta", dias5: 0, dias10: 0, dias15: 2, acima15: 2 },
+      ],
+    },
+    {
+      risco: 2,
+      clientes: [
+        { nome: "Cliente Gama", dias5: 1, dias10: 2, dias15: 0, acima15: 0 },
+        { nome: "Cliente Delta", dias5: 0, dias10: 2, dias15: 1, acima15: 0 },
+      ],
+    },
+    {
+      risco: 1,
+      clientes: [
+        { nome: "Cliente Epsilon", dias5: 3, dias10: 0, dias15: 1, acima15: 0 },
+        { nome: "Cliente Zeta", dias5: 2, dias10: 1, dias15: 1, acima15: 0 },
+      ],
+    },
+  ];
+
+  // DADOS FICTÍCIOS PARA GRÁFICO MENSAL (pode ser substituído pelo Excel depois)
+  const bosPorMesFicticio = [
+    { mes: "Jan", bos: 17 },
+    { mes: "Fev", bos: 22 },
+    { mes: "Mar", bos: 35 },
+    { mes: "Abr", bos: 20 },
+    { mes: "Mai", bos: 29 },
+    { mes: "Jun", bos: 32 },
+    { mes: "Jul", bos: 31 },
+    { mes: "Ago", bos: 27 },
+    { mes: "Set", bos: 15 },
+    { mes: "Out", bos: 25 },
+    { mes: "Nov", bos: 19 },
+    { mes: "Dez", bos: 23 },
+  ];
 
   // Gráfico por filial
   const bosPorFilial = Object.entries(
@@ -157,11 +387,10 @@ export default function Monitoramento() {
 
   // Gráfico de status
   const statusData = [
-    { name: "Abertos", value: totalAbertos },
-    { name: "Fechados", value: totalFechados },
+    { name: "Abertos Hoje", value: totalAbertosHoje },
+    { name: "Fechados Hoje", value: totalFechadosHoje },
   ];
 
-  // Interatividade da lista de unidades mais ofensoras
   const [hoveredOfensora, setHoveredOfensora] = useState(null);
 
   return (
@@ -173,7 +402,6 @@ export default function Monitoramento() {
           (Excel).
         </span>
       </div>
-
       {loading && (
         <div className="monitoramento-loading">Carregando dados...</div>
       )}
@@ -181,7 +409,6 @@ export default function Monitoramento() {
 
       {!loading && !erro && (
         <div className="monitoramento-content-split">
-          {/* PARTE SUPERIOR */}
           <div className="monitoramento-section monitoramento-superior">
             <div className="monitoramento-metricas">
               <div className="metrica-card">
@@ -190,67 +417,77 @@ export default function Monitoramento() {
               </div>
               <div className="metrica-card">
                 <h4>B.Os Abertos</h4>
-                <span>{totalAbertos}</span>
+                <span>{totalAbertosHoje}</span>
               </div>
               <div className="metrica-card">
                 <h4>B.Os Fechados</h4>
-                <span>{totalFechados}</span>
+                <span>{totalFechadosHoje}</span>
               </div>
               <div className="metrica-card">
                 <h4>B.Os Sem Parecer</h4>
-                <span>{totalFechados}</span>
+                <span>{totalSemParecer}</span>
               </div>
               <div className="metrica-card">
                 <h4>B.Os Falta Total</h4>
-                <span>{totalFechados}</span>
+                <span>{totalFaltaTotal}</span>
               </div>
               <div className="metrica-card">
-                <h4>B.Os Falta Total</h4>
-                <span>{totalFechados}</span>
+                <h4>B.Os Avaria Total</h4>
+                <span>{totalAvariaTotal}</span>
               </div>
             </div>
 
             <div className="monitoramento-superior-row">
-              {/* Lista interativa: Unidades mais Ofensoras */}
+              {/* TOP 10 PARCEIROS MAIS OFENSORES */}
               <div className="unidades-ofensoras-wrapper">
                 <h3 className="unidades-ofensoras-titulo">
-                  Unidades mais ofensoras
+                  Parceiros mais ofensores (Top 10)
                 </h3>
                 <div className="unidades-ofensoras-table-container">
                   <table className="unidades-ofensoras-table">
                     <thead>
                       <tr>
-                        <th className="th-centralizadora"></th>
-                        <th>Centralizadora</th>
+                        <th></th>
                         <th>Parceiro</th>
+                        <th>Centralizadora</th>
                         <th>B.Os</th>
                         <th>5 dias</th>
                         <th>10 dias</th>
                         <th>15 dias</th>
-                        <th>Mais de 15 dias</th>
+                        <th>Acima 15 dias</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {unidadesOfensorasFicticio.map((item, idx) => (
+                      {rankingAtual.map((item, idx) => (
                         <tr
-                          key={idx}
+                          key={item.parceiro}
                           className={
                             hoveredOfensora === idx ? "ofensora-hovered" : ""
                           }
                           onMouseEnter={() => setHoveredOfensora(idx)}
                           onMouseLeave={() => setHoveredOfensora(null)}
                         >
-                          <td className="td-arrow">
+                          <td>
                             {item.status === "up" ? (
-                              <span className="arrow-up">&#9650;</span>
+                              <span
+                                className="arrow-up"
+                                title="Subiu no ranking"
+                              >
+                                &#9650;
+                              </span>
+                            ) : item.status === "down" ? (
+                              <span
+                                className="arrow-down"
+                                title="Desceu no ranking"
+                              >
+                                &#9660;
+                              </span>
                             ) : (
-                              <span className="arrow-down">&#9660;</span>
+                              <span style={{ color: "#ccc" }}>–</span>
                             )}
                           </td>
-                          <td className="td-centralizadora">
-                            {item.centralizadora}
-                          </td>
                           <td>{item.parceiro}</td>
+                          <td>{item.centralizadora}</td>
                           <td>{item.bos}</td>
                           <td>{item.dias5}</td>
                           <td>{item.dias10}</td>
@@ -262,9 +499,9 @@ export default function Monitoramento() {
                   </table>
                 </div>
               </div>
-              {/* FIM Lista unidades mais ofensoras */}
+              {/* FIM Top 10 Parceiros */}
 
-              {/* NOVO: Card de evolução por mês */}
+              {/* Evolução mensal */}
               <div className="evolucao-mensal-card">
                 <h3 className="evolucao-mensal-titulo">
                   Evolução Mensal de B.Os
