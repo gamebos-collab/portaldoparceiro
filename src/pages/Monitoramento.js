@@ -64,7 +64,7 @@ const parceirosPorCentralizadora = {
   SOR: ["ITP"],
   RIP: ["FCA", "PTF", "OCA", "PSS"],
   SUM: [],
-  SÃO: [
+  SAO: [
     "REG",
     "SAN",
     "SJK",
@@ -213,10 +213,10 @@ export default function Monitoramento() {
   const COL_DIAS_SEM_ACOMP = "Dias sem acompanhamento";
   const COL_RESP = "Resp";
   const COL_CENTRALIZADORA = "Centralizadora";
-  const COL_5 = "5 dias";
-  const COL_10 = "10 dias";
-  const COL_15 = "15 dias";
-  const COL_MAIS15 = "acima 15";
+  const COL_5 = "0 a 5";
+  const COL_10 = "6 a 10";
+  const COL_15 = "11 a 15";
+  const COL_MAIS15 = "> 15";
 
   // Total de B.Os (cada linha é um B.O.)
   const totalBOs = dados.length;
@@ -255,10 +255,10 @@ export default function Monitoramento() {
   ).length;
 
   // ======= TOP 10 PARCEIROS MAIS OFENSORES =======
-  // Soma de BOs em aberto em 5, 10, 15 e acima de 15 dias por parceiro
   function getSum(n) {
     return isNaN(Number(n)) ? 0 : Number(n);
   }
+  if (dados.length) console.log(dados[0]);
   const parceirosRanking = {};
   dados.forEach((d) => {
     const parceiro = d[COL_RESP];
@@ -274,11 +274,11 @@ export default function Monitoramento() {
       parceirosRanking[parceiro] = {
         parceiro,
         centralizadora,
-        bos: 0,
         dias5: 0,
         dias10: 0,
         dias15: 0,
         mais15: 0,
+        totalBOs: 0, // Soma das 4 faixas
         status: "up",
         oldRank: null,
       };
@@ -287,11 +287,12 @@ export default function Monitoramento() {
     parceirosRanking[parceiro].dias10 += getSum(d[COL_10]);
     parceirosRanking[parceiro].dias15 += getSum(d[COL_15]);
     parceirosRanking[parceiro].mais15 += getSum(d[COL_MAIS15]);
-    parceirosRanking[parceiro].bos +=
-      getSum(d[COL_5]) +
-      getSum(d[COL_10]) +
-      getSum(d[COL_15]) +
-      getSum(d[COL_MAIS15]);
+    // Soma total dos B.Os abertos (todas as faixas)
+    parceirosRanking[parceiro].totalBOs =
+      parceirosRanking[parceiro].dias5 +
+      parceirosRanking[parceiro].dias10 +
+      parceirosRanking[parceiro].dias15 +
+      parceirosRanking[parceiro].mais15;
   });
 
   // Pega o ranking anterior do localStorage para desenhar a seta de ranking
@@ -300,9 +301,9 @@ export default function Monitoramento() {
     const lastRanking = localStorage.getItem("parceirosRanking");
     if (lastRanking) setRankingAnterior(JSON.parse(lastRanking));
   }, []);
-  // Calcula ranking atual
+  // Calcula ranking atual (agora ordenando por totalBOs)
   const rankingAtual = Object.values(parceirosRanking)
-    .sort((a, b) => b.bos - a.bos)
+    .sort((a, b) => b.totalBOs - a.totalBOs)
     .slice(0, 10);
   // Atualiza o ranking no localStorage para próxima visualização
   useEffect(() => {
@@ -450,11 +451,11 @@ export default function Monitoramento() {
                         <th></th>
                         <th>Parceiro</th>
                         <th>Centralizadora</th>
-                        <th>B.Os</th>
                         <th>5 dias</th>
                         <th>10 dias</th>
                         <th>15 dias</th>
                         <th>Acima 15 dias</th>
+                        <th>Total B.O's</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -488,11 +489,11 @@ export default function Monitoramento() {
                           </td>
                           <td>{item.parceiro}</td>
                           <td>{item.centralizadora}</td>
-                          <td>{item.bos}</td>
                           <td>{item.dias5}</td>
                           <td>{item.dias10}</td>
                           <td>{item.dias15}</td>
                           <td>{item.mais15}</td>
+                          <td>{item.totalBOs}</td>
                         </tr>
                       ))}
                     </tbody>
