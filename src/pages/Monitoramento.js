@@ -254,6 +254,12 @@ export default function Monitoramento() {
       "AVARIA TOTAL"
   ).length;
 
+  // Veja todos os valores que estão vindo da coluna Emissão
+  console.log("Todos os valores da coluna Emissão:");
+  dados.forEach((d, i) => {
+    if (d.Emissão) console.log(`[${i}]`, d.Emissão, typeof d.Emissão);
+  });
+
   // ======= TOP 10 PARCEIROS MAIS OFENSORES =======
   function getSum(n) {
     return isNaN(Number(n)) ? 0 : Number(n);
@@ -354,7 +360,6 @@ export default function Monitoramento() {
     },
   ];
 
-  // Cole ESTA FUNÇÃO ANTES do uso de nomeMes
   function nomeMes(num) {
     const nomes = [
       "Jan",
@@ -372,6 +377,7 @@ export default function Monitoramento() {
     ];
     return nomes[num - 1];
   }
+
   const ANO_GRAFICO = "2025";
   const bosPorMes = Array.from({ length: 12 }, (_, idx) => ({
     mes: nomeMes(idx + 1),
@@ -379,36 +385,15 @@ export default function Monitoramento() {
   }));
 
   dados.forEach((d) => {
-    let dt = d["Emissão"];
-    if (!dt) return;
-    let dataStr = "";
+    const valor = d["Emissão"];
+    if (!valor) return;
 
-    if (typeof dt === "number") {
-      dataStr = XLSX.SSF.format("yyyy-mm-dd", dt);
-    } else if (typeof dt === "string") {
-      dt = dt.trim();
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(dt)) {
-        // dd/mm/yyyy
-        const [dia, mes, ano] = dt.split("/");
-        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
-      } else if (/^\d{2}\/\d{2}\/\d{2}$/.test(dt)) {
-        // dd/mm/yy
-        let [dia, mes, ano] = dt.split("/");
-        ano = ano.length === 2 ? "20" + ano : ano;
-        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
-      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dt)) {
-        // yyyy-mm-dd
-        dataStr = dt;
-      } else if (/^\d{2}-\d{2}-\d{4}$/.test(dt)) {
-        // dd-mm-yyyy
-        const [dia, mes, ano] = dt.split("-");
-        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
-      } else if (/^\d{2}-\d{2}-\d{2}$/.test(dt)) {
-        // dd-mm-yy
-        let [dia, mes, ano] = dt.split("-");
-        ano = ano.length === 2 ? "20" + ano : ano;
-        dataStr = `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
-      }
+    let dataStr = "";
+    if (typeof valor === "number") {
+      dataStr = XLSX.SSF.format("yyyy-mm-dd", valor);
+      console.log("Linha convertida:", valor, "->", dataStr);
+    } else if (typeof valor === "string") {
+      dataStr = valor;
     }
 
     if (!dataStr) return;
@@ -417,6 +402,9 @@ export default function Monitoramento() {
     const mesIdx = Number(mes) - 1;
     if (mesIdx >= 0 && mesIdx <= 11) bosPorMes[mesIdx].bos++;
   });
+
+  // Veja o array do gráfico no console
+  console.log("bosPorMes final:", bosPorMes);
   // Gráfico por filial
   const bosPorFilial = Object.entries(
     dados.reduce((acc, curr) => {
