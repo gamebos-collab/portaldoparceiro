@@ -412,12 +412,7 @@ export default function Monitoramento() {
 
   return (
     <div className="monitoramento-page">
-      <div className="monitoramento-header">
-        <h1>Monitoramento de B.Os</h1>
-        <span className="monitoramento-desc">
-          Visualize as métricas e situações dos B.Os
-        </span>
-      </div>
+      <div className="monitoramento-header"></div>
       {loading && (
         <div className="monitoramento-loading">Carregando dados...</div>
       )}

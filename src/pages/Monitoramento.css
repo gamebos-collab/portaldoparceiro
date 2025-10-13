@@ -49,6 +49,9 @@
   margin: 1px;
   text-align: center;
   box-shadow: 0 2px 22px rgba(0, 0, 0, 0.13);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: #ffffff;
 }
 .metrica-card h4 {
   color: #fff;
@@ -353,4 +356,11 @@
   color: #000000; /* Muda a cor ao passar o mouse */
   transform: scale(1.1); /* Leve aumento de tamanho */
   text-shadow: 0 0 1px #ffffff71; /* Brilho sutil */
+}
+
+/* Efeito ao passar o mouse */
+.metrica-card:hover {
+  transform: scale(1.05);
+  background-color: #23376b;
+  box-shadow: 0 4px 16px #ffe200;
 }
