@@ -150,7 +150,8 @@
   box-shadow: 0 2px 22px rgba(0, 0, 0, 0.1);
   padding: 18px 14px 10px 16px;
   min-width: 320px;
-  max-width: 900px;
+  max-width: 950px;
+  height: 400px; /* Define altura exata */
   flex: 1 1 320px;
   display: flex;
   flex-direction: column;
@@ -167,7 +168,7 @@
 }
 .evolucao-mensal-grafico-container {
   width: 100%;
-  height: 220px;
+  height: 280px;
   background: #243e6b;
   border-radius: 10px;
   margin-bottom: 10px;

@@ -517,17 +517,17 @@ export default function Monitoramento() {
                   Evolução Mensal de B.Os
                 </h3>
                 <div className="evolucao-mensal-grafico-container">
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={260}>
                     <LineChart
                       data={bosPorMes}
-                      margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="mes" />
                       <YAxis allowDecimals={false} />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="bos" fill="#f0f0f0ff" barSize={22} />
+                      <Bar dataKey="bos" fill="#b9b9b9ff" barSize={28} />
                       <Line
                         type="monotone"
                         dataKey="bos"
