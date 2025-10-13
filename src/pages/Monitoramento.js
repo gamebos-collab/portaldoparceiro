@@ -415,8 +415,7 @@ export default function Monitoramento() {
       <div className="monitoramento-header">
         <h1>Monitoramento de B.Os</h1>
         <span className="monitoramento-desc">
-          Visualize as métricas e situações dos B.Os extraídas do banco de dados
-          (Excel).
+          Visualize as métricas e situações dos B.Os
         </span>
       </div>
       {loading && (
@@ -557,6 +556,9 @@ export default function Monitoramento() {
               {/* FIM Card de evolução por mês */}
             </div>
           </div>
+
+          <h1 class="titulo-clientes-risco">Clientes em Risco</h1>
+
           {/* PARTE INFERIOR */}
           <div className="monitoramento-section monitoramento-inferior">
             <div className="monitoramento-graficos-e-tabela">
@@ -567,7 +569,7 @@ export default function Monitoramento() {
                     className={`clientes-risco-card risco${riscoItem.risco}`}
                   >
                     <div className="clientes-risco-titulo">
-                      Cliente em Risco {riscoItem.risco}
+                      Risco {riscoItem.risco}
                     </div>
                     <table className="clientes-risco-tabela">
                       <thead>
@@ -585,7 +587,6 @@ export default function Monitoramento() {
                           <th
                             style={{
                               background: riscoColors[3],
-                              color: "#fff",
                             }}
                           >
                             acima de 15 dias
@@ -608,7 +609,6 @@ export default function Monitoramento() {
                             <td
                               style={{
                                 background: riscoColors[3],
-                                color: "#fff",
                               }}
                             >
                               {cli.acima15}
