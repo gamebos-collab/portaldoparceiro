@@ -560,20 +560,14 @@ export default function Monitoramento() {
           {/* PARTE INFERIOR */}
           <div className="monitoramento-section monitoramento-inferior">
             <div className="monitoramento-graficos-e-tabela">
-              <div
-                className="clientes-risco-cards-linha"
-                style={clientesRiscoQuadrosStyle}
-              >
+              <div className="clientes-risco-cards-linha">
                 {clientesRiscoReais.map((riscoItem) => (
                   <div
                     key={riscoItem.risco}
-                    className="clientes-risco-card clientes-risco-margin"
+                    className={`clientes-risco-card risco${riscoItem.risco}`}
                   >
-                    <h3>Clientes em Risco</h3>
-                    <div
-                      className={`clientes-risco-titulo risco${riscoItem.risco}`}
-                    >
-                      Risco {riscoItem.risco}
+                    <div className="clientes-risco-titulo">
+                      Cliente em Risco {riscoItem.risco}
                     </div>
                     <table className="clientes-risco-tabela">
                       <thead>
@@ -601,7 +595,7 @@ export default function Monitoramento() {
                       <tbody>
                         {riscoItem.clientes.map((cli, idx) => (
                           <tr key={cli.nome + idx}>
-                            <td>{cli.nome}</td>
+                            <td className="cliente-nome">{cli.nome}</td>
                             <td style={{ background: riscoColors[0] }}>
                               {cli.dias5}
                             </td>
