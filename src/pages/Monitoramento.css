@@ -100,7 +100,6 @@
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-.unidades-ofensoras-table th,
 .unidades-ofensoras-table td {
   padding: 8px 10px;
   color: #ffffff;
@@ -112,7 +111,6 @@
   color: #ffe200;
   background: #1c2957;
 }
-.unidades-ofensoras-table .th-centralizadora,
 .unidades-ofensoras-table .td-arrow {
   width: 10px;
   padding-left: 2px;
@@ -197,94 +195,6 @@
   min-width: 0;
 }
 
-/* Coluna fixa na margem direita para os cards de risco */
-.clientes-risco-cards-coluna {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  position: sticky;
-  right: 0;
-  top: 120px;
-  align-self: flex-start;
-  max-width: 400px;
-  min-width: 270px;
-  z-index: 2;
-}
-
-.clientes-risco-card {
-  background: #1c2957;
-  border-radius: 18px;
-  padding: 18px 14px;
-  width: 100%;
-  box-shadow: 0 1px 22px rgba(0, 0, 0, 0.637);
-}
-.clientes-risco-card h3 {
-  color: #ffe200;
-  font-size: 1.15rem;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.clientes-risco-tabela-wrap + .clientes-risco-tabela-wrap {
-  margin-top: 26px;
-}
-
-.clientes-risco-titulo {
-  font-weight: bold;
-  font-size: 1.08rem;
-  margin-bottom: 2px;
-  margin-top: 10px;
-  color: #fff;
-  text-align: center;
-}
-
-.clientes-risco-tabela {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-bottom: 10px;
-  background: #23376b;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.925);
-}
-.clientes-risco-tabela th:first-child,
-.clientes-risco-tabela td:first-child {
-  color: #a0a0a0;
-  font-weight: bold;
-}
-
-.clientes-risco-tabela th {
-  font-weight: bold;
-  border-bottom: 1px solid #ffffff;
-}
-
-.clientes-risco-tabela td {
-  border-bottom: 1px solid #ffffff;
-}
-
-.clientes-risco-tabela tr:last-child td {
-  border-bottom: none;
-}
-
-.risco3 {
-  color: #ff4242;
-}
-.risco2 {
-  color: #ff9800;
-}
-.risco1 {
-  color: #00ff40;
-}
-
-.monitoramento-loading,
-.monitoramento-erro {
-  font-size: 1.3rem;
-  color: #fff2a8;
-  margin: 60px 0;
-  text-align: center;
-}
-
 /* Responsividade */
 @media (max-width: 1100px) {
   .monitoramento-superior-row {
@@ -295,7 +205,6 @@
     flex-direction: column;
     gap: 24px;
   }
-  .clientes-risco-cards-coluna,
   .evolucao-mensal-card {
     position: static;
     max-width: unset;
@@ -328,4 +237,81 @@
   font-weight: bold; /* negrito */
   font-size: 30px;
   text-align: center; /* alinhamento à direita */
+}
+
+/* Estilo individual de cada card de risco */
+.clientes-risco-card {
+  border-radius: 18px;
+  padding: 18px 85px;
+  width: 100%;
+  max-width: 280px; /* Largura máxima para cada card */
+  flex-shrink: 0; /* Impede que os cards diminuam além do limite */
+}
+
+/* Título do card */
+.clientes-risco-card h3 {
+  color: #ffe200;
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* Título interno das seções */
+.clientes-risco-titulo {
+  font-weight: bold;
+  font-size: 1.08rem;
+  margin-bottom: 2px;
+  margin-top: 10px;
+  color: #fff;
+  text-align: center;
+}
+
+/* Tabela de risco */
+.clientes-risco-tabela {
+  width: 100%;
+  border-collapse: separate;
+  font-size: 0.8rem;
+  border-spacing: 0;
+  margin-bottom: 10px;
+  background: #23376b;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.925);
+}
+
+.clientes-risco-tabela th:first-child,
+.clientes-risco-tabela td:first-child {
+  color: #a0a0a0;
+  font-weight: bold;
+  padding: 2px 0px; /* 10px vertical, 16px horizontal */
+  text-align: center;
+  white-space: nowrap; /* Impede quebra de linha */
+}
+
+.clientes-risco-tabela th {
+  font-weight: bold;
+  border-bottom: 1px solid #ffffff;
+}
+
+.clientes-risco-tabela td {
+  border-bottom: 1px solid #ffffff;
+}
+
+.clientes-risco-tabela tr:last-child td {
+  border-bottom: none;
+}
+.clientes-risco-tabela td {
+  font-size: 0.5rem; /* Ajuste conforme necessário */
+  padding: 2px 25px;
+}
+
+/* Cores por nível de risco */
+.risco3 {
+  color: #ff4242;
+}
+.risco2 {
+  color: #ff9800;
+}
+.risco1 {
+  color: #00ff40;
 }

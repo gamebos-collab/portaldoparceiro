@@ -404,10 +404,10 @@ export default function Monitoramento() {
   const clientesRiscoQuadrosStyle = {
     display: "flex",
     flexDirection: "row",
-    gap: "16px",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    flexWrap: "wrap",
+    justifyContent: "center", // Centraliza os cards horizontalmente
+    alignItems: "flex-start", // Alinha os cards pelo topo
+    width: "100%", // Ocupa toda a largura disponível
+    boxSizing: "border-box", // Garante que padding não ultrapasse a largura
   };
 
   return (
