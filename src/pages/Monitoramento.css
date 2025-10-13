@@ -365,3 +365,28 @@
   background-color: #23376b;
   box-shadow: 0 4px 16px #ffe200;
 }
+.monitoramento-loading {
+  text-align: center;
+  color: #ffe200; /* Cor vibrante (amarelo) */
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 40px 0;
+  animation: pulsar 1.2s infinite ease-in-out;
+  letter-spacing: 1px;
+}
+
+/* Animação pulsante */
+@keyframes pulsar {
+  0% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+}
