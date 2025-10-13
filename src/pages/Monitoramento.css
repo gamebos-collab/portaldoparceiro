@@ -352,5 +352,5 @@
 .clientes-risco-card:hover {
   color: #000000; /* Muda a cor ao passar o mouse */
   transform: scale(1.1); /* Leve aumento de tamanho */
-  text-shadow: 0 0 2px #ffffff; /* Brilho sutil */
+  text-shadow: 0 0 1px #ffffff71; /* Brilho sutil */
 }

@@ -568,9 +568,12 @@ export default function Monitoramento() {
                     key={riscoItem.risco}
                     className={`clientes-risco-card risco${riscoItem.risco}`}
                   >
-                    <div className="clientes-risco-titulo">
+                    <div
+                      className={`clientes-risco-titulo risco${riscoItem.risco}`}
+                    >
                       Risco {riscoItem.risco}
                     </div>
+
                     <table className="clientes-risco-tabela">
                       <thead>
                         <tr>
