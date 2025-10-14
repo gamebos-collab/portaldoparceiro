@@ -238,8 +238,6 @@ const gerentesRegionais = {
     email: "wagner.lima@translovato.com.br",
     telefone: "55 21-99922-2720",
   },
-
-  // Adicione todas as outras centralizadoras!
 };
 
 const barColors = [
@@ -279,7 +277,7 @@ export default function Home() {
   useEffect(() => {
     const carregarExcel = async () => {
       try {
-        const res = await fetch("/kpiparceiros.xlsx");
+        const res = await fetch("/kpiparceiro.xlsm");
         if (!res.ok) {
           setErro("Não foi possível carregar o arquivo Excel.");
           return;
@@ -288,8 +286,9 @@ export default function Home() {
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
+        // Começa da linha 10 (A10:L...), pega todas as colunas
         const json = XLSX.utils.sheet_to_json(sheet, {
-          range: "A1:K259",
+          range: 9, // linha 10 é zero-based 9
           defval: "",
         });
         setDadosExcel(json);
@@ -353,9 +352,18 @@ export default function Home() {
   // Dados para o gráfico
   const graficoData = parceirosDaCentralizadora.map((sigla, idx) => ({
     parceiro: sigla,
-    bos: bosParceiros.filter((item) => item.Resp === sigla).length,
+    bos: dadosExcel.filter(
+      (item) =>
+        item.Centralizadora === centralizadoraSelecionada && item.Resp === sigla
+    ).length,
     fill: barColors[idx % barColors.length],
   }));
+
+  const contarBOsParceiro = (sigla) =>
+    dadosExcel.filter(
+      (item) =>
+        item.Centralizadora === centralizadoraSelecionada && item.Resp === sigla
+    ).length;
 
   // Detalhes do parceiro
   const abrirDetalhes = (responsabilidade) => {
@@ -383,7 +391,7 @@ export default function Home() {
     );
   };
 
-  // Renderiza cards dos parceiros e centralizadora
+  // Renderiza cards dos parceiros e centralizadora (layout antigo)
   const renderCards = () => (
     <div
       className="parceiros-cards"
@@ -418,9 +426,16 @@ export default function Home() {
         </div>
         <div
           className="bos-quantidade"
-          style={{ margin: "8px 0", color: "#ffffffff" }}
+          style={{ margin: "8px 0", color: "#ffffffff", fontWeight: 700 }}
         >
-          {bosCentralizadora.length} B.O
+          {
+            dadosExcel.filter(
+              (item) =>
+                item.Centralizadora === centralizadoraSelecionada &&
+                (item.Resp === centralizadoraSelecionada || !item.Resp)
+            ).length
+          }{" "}
+          B.O
         </div>
         <button
           className="detalhes-btn"
@@ -443,7 +458,7 @@ export default function Home() {
 
       {/* Cards Parceiros */}
       {parceirosDaCentralizadora.map((sigla, idx) => {
-        const count = bosParceiros.filter((item) => item.Resp === sigla).length;
+        const count = contarBOsParceiro(sigla);
         return (
           <div
             className="parceiro-card"
@@ -464,13 +479,18 @@ export default function Home() {
           >
             <div
               className="sigla"
-              style={{ fontWeight: "bold", fontSize: "1rem" }}
+              style={{ fontWeight: "bold", fontSize: "1.2rem" }}
             >
               {sigla}
             </div>
             <div
               className="bos-quantidade"
-              style={{ margin: "8px 0", color: "#ffffffff" }}
+              style={{
+                margin: "5px 0",
+                fontSize: "1rem",
+                color: "#ffffffff",
+                fontWeight: 700,
+              }}
             >
               {count} B.O
             </div>
@@ -532,10 +552,146 @@ export default function Home() {
     );
   };
 
-  // Adicione estas funções para evitar o erro "not defined"
-  const renderBOsCriticos = () => <div>Conteúdo de B.O's Críticos</div>;
-  const renderBOsRevercoes = () => <div>Conteúdo de Reversões</div>;
-  const renderBOsBaixados = () => <div>Conteúdo de B.O's Baixados</div>;
+  // ABA B.O's CRÍTICOS
+  const FAIXAS_CRITICAS = ["Baixo", "Médio", "Alto", "Crítico"];
+  const getFaixaColName = (item) => {
+    if ("Faixa Score" in item) return "Faixa Score";
+    if ("Faixa" in item) return "Faixa";
+    return "Faixa Score";
+  };
+
+  // B.Os críticos: centralizadora + parceiros (todos juntos)
+  const bosCriticos = dadosExcel.filter((item) => {
+    if (item.Centralizadora !== centralizadoraSelecionada) return false;
+    const respValida =
+      item.Resp === centralizadoraSelecionada ||
+      parceirosDaCentralizadora.includes(item.Resp);
+    if (!respValida) return false;
+    const faixaCol = getFaixaColName(item);
+    return FAIXAS_CRITICAS.includes((item[faixaCol] || "").trim());
+  });
+
+  // Renderiza tabela dos B.Os críticos
+  const renderBOsCriticos = () => (
+    <div
+      style={{
+        maxHeight: "270px",
+        overflowY: "auto",
+        marginTop: "16px",
+        background: "#fff",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px #0002",
+        padding: "8px 4px",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "0.97rem",
+        }}
+      >
+        <thead>
+          <tr style={{ background: "#18304b", color: "#ffe200" }}>
+            <th style={{ padding: "6px 8px", borderRadius: "5px 0 0 0" }}>
+              Unidade
+            </th>
+            <th style={{ padding: "6px 8px" }}>BO</th>
+            <th style={{ padding: "6px 8px" }}>CT-e</th>
+            <th style={{ padding: "6px 8px" }}>Ocorrência</th>
+            <th style={{ padding: "6px 8px" }}>Valor</th>
+            <th style={{ padding: "6px 8px" }}>Responsabilidade</th>
+            <th style={{ padding: "6px 8px" }}>Notas Fiscais</th>
+            <th style={{ padding: "6px 8px", borderRadius: "0 5px 0 0" }}>
+              Faixa
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {bosCriticos.length === 0 ? (
+            <tr>
+              <td colSpan={7} style={{ textAlign: "center", color: "#072d4d" }}>
+                Nenhum B.O crítico encontrado.
+              </td>
+            </tr>
+          ) : (
+            bosCriticos.map((item, idx) => {
+              const faixaCol = getFaixaColName(item);
+              return (
+                <tr
+                  key={idx}
+                  style={{
+                    background: idx % 2 === 0 ? "#f7faff" : "#eef3fb",
+                    color: "#072d4d",
+                    fontSize: 10,
+                    textAlign: "center",
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "5px 7px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item["Unidade"] || ""}
+                  </td>
+                  <td style={{ padding: "5px 7px" }}>{item["Nr BO"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>{item["Nr Ct"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>
+                    {item["Ocorrência"] || ""}
+                  </td>
+                  <td style={{ padding: "5px 7px" }}>{item["Vlr NF"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>{item["Resp"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>
+                    {item["Notas Fiscais"] || ""}
+                  </td>
+                  <td style={{ padding: "5px 7px", fontWeight: 600 }}>
+                    {item[faixaCol] || ""}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  // ABA REVERSÕES (estrutura pronta para buscar por nome de coluna futuramente)
+  const renderBOsRevercoes = () => {
+    return (
+      <div
+        style={{
+          marginTop: "16px",
+          color: "#072d4d",
+          textAlign: "center",
+          background: "#fff",
+          borderRadius: "8px",
+          padding: "16px",
+        }}
+      >
+        Conteúdo de Reversões estará disponível em breve...
+      </div>
+    );
+  };
+
+  // ABA B.O's BAIXADOS (estrutura pronta para buscar por nome de coluna futuramente)
+  const renderBOsBaixados = () => {
+    return (
+      <div
+        style={{
+          marginTop: "16px",
+          color: "#072d4d",
+          textAlign: "center",
+          background: "#fff",
+          borderRadius: "8px",
+          padding: "16px",
+        }}
+      >
+        Conteúdo de B.O's Baixados estará disponível em breve...
+      </div>
+    );
+  };
 
   // Renderiza o popup
   const renderPopup = () => {
@@ -710,8 +866,6 @@ export default function Home() {
               }}
             >
               {renderGerenteRegional()}
-
-              {/* MENUS/ABAS DENTRO DO CONTAINER DO GERENTE E NÃO FIXOS */}
               <div
                 className="abas"
                 style={{
@@ -761,14 +915,13 @@ export default function Home() {
             </div>
             {/* Conteúdo da aba ativa */}
             <div className="conteudo-aba">{renderAbaConteudo()}</div>
-            {/* Instrução para fechar */}
             <p
               className="popup-esc"
               style={{
                 marginTop: "16px",
                 textAlign: "center",
                 fontSize: "0.9rem",
-                color: "#666",
+                color: "#ffffffff",
               }}
             >
               Pressione ESC para fechar
