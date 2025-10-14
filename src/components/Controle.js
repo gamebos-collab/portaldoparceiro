@@ -588,12 +588,17 @@ export default function Home() {
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          fontSize: "0.97rem",
+          fontSize: "0.8rem",
         }}
       >
         <thead>
           <tr style={{ background: "#18304b", color: "#ffe200" }}>
-            <th style={{ padding: "6px 8px", borderRadius: "5px 0 0 0" }}>
+            <th
+              style={{
+                padding: "6px 8px",
+                borderRadius: "5px 0 0 0",
+              }}
+            >
               Unidade
             </th>
             <th style={{ padding: "6px 8px" }}>BO</th>
@@ -616,6 +621,7 @@ export default function Home() {
             </tr>
           ) : (
             bosCriticos.map((item, idx) => {
+              console.log(item);
               const faixaCol = getFaixaColName(item);
               return (
                 <tr
@@ -640,10 +646,17 @@ export default function Home() {
                   <td style={{ padding: "5px 7px" }}>
                     {item["Ocorrência"] || ""}
                   </td>
-                  <td style={{ padding: "5px 7px" }}>{item["Vlr NF"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>
+                    {item[" Vlr NF "]
+                      ? `R$ ${item[" Vlr NF "]
+                          .toString()
+                          .replace(/[^\d,]/g, "")
+                          .trim()}`
+                      : ""}
+                  </td>
                   <td style={{ padding: "5px 7px" }}>{item["Resp"] || ""}</td>
                   <td style={{ padding: "5px 7px" }}>
-                    {item["Notas Fiscais"] || ""}
+                    {(item["Notas Fiscais"] || "").split("/")[0]}
                   </td>
                   <td style={{ padding: "5px 7px", fontWeight: 600 }}>
                     {item[faixaCol] || ""}
