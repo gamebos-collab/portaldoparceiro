@@ -615,65 +615,60 @@ export default function Home() {
           </tr>
         </thead>
         <tbody>
-          {bosCriticos.length === 0 ? (
-            <tr>
-              <td colSpan={8} style={{ textAlign: "center", color: "#072d4d" }}>
-                Nenhum B.O crítico encontrado.
-              </td>
-            </tr>
-          ) : (
-            [...bosCriticos]
-              .sort((a, b) => {
-                const getFaixa = (item) =>
-                  (item[getFaixaColName(item)] || "").trim();
-                return (
-                  (criticidadeOrdem[getFaixa(a)] || 99) -
-                  (criticidadeOrdem[getFaixa(b)] || 99)
-                );
-              })
-              .map((item, idx) => {
-                const faixaCol = getFaixaColName(item);
-                return (
-                  <tr
-                    key={idx}
+          {[...bosCriticos]
+            .sort((a, b) => {
+              const getFaixa = (item) =>
+                (item[getFaixaColName(item)] || "").trim();
+              return (
+                (criticidadeOrdem[getFaixa(a)] || 99) -
+                (criticidadeOrdem[getFaixa(b)] || 99)
+              );
+            })
+            .map((item, idx) => {
+              const faixaCol = getFaixaColName(item);
+              const isCritico =
+                (item[faixaCol] || "").trim().toLowerCase() === "crítico";
+              return (
+                <tr
+                  key={idx}
+                  style={{
+                    background: idx % 2 === 0 ? "#f7faff" : "#eef3fb",
+                    color: isCritico ? "red" : "#072d4d",
+                    fontSize: 10,
+                    textAlign: "center",
+                  }}
+                >
+                  <td style={{ padding: "5px 7px", fontWeight: 700 }}>
+                    {item["Unidade"] || ""}
+                  </td>
+                  <td style={{ padding: "5px 7px" }}>{item["Nr BO"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>{item["Nr Ct"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>
+                    {item["Ocorrência"] || ""}
+                  </td>
+                  <td style={{ padding: "5px 7px" }}>
+                    {item["Vlr NF"] || item[" Vlr NF "]
+                      ? `R$ ${(item["Vlr NF"] || item[" Vlr NF "])
+                          .toString()
+                          .replace(/[^\d.,]/g, "")
+                          .trim()}`
+                      : ""}
+                  </td>
+                  <td style={{ padding: "5px 7px" }}>{item["Resp"] || ""}</td>
+                  <td style={{ padding: "5px 7px" }}>
+                    {(item["Notas Fiscais"] || "").split("/")[0]}
+                  </td>
+                  <td
                     style={{
-                      background: idx % 2 === 0 ? "#f7faff" : "#eef3fb",
-                      color: "#072d4d",
-                      fontSize: 10,
-                      textAlign: "center",
+                      padding: "5px 7px",
+                      fontWeight: 600,
                     }}
                   >
-                    <td style={{ padding: "5px 7px", fontWeight: 700 }}>
-                      {item["Unidade"] || ""}
-                    </td>
-                    <td style={{ padding: "5px 7px" }}>
-                      {item["Nr BO"] || ""}
-                    </td>
-                    <td style={{ padding: "5px 7px" }}>
-                      {item["Nr Ct"] || ""}
-                    </td>
-                    <td style={{ padding: "5px 7px" }}>
-                      {item["Ocorrência"] || ""}
-                    </td>
-                    <td style={{ padding: "5px 7px" }}>
-                      {item["Vlr NF"] || item[" Vlr NF "]
-                        ? `R$ ${(item["Vlr NF"] || item[" Vlr NF "])
-                            .toString()
-                            .replace(/[^\d.,]/g, "")
-                            .trim()}`
-                        : ""}
-                    </td>
-                    <td style={{ padding: "5px 7px" }}>{item["Resp"] || ""}</td>
-                    <td style={{ padding: "5px 7px" }}>
-                      {(item["Notas Fiscais"] || "").split("/")[0]}
-                    </td>
-                    <td style={{ padding: "5px 7px", fontWeight: 600 }}>
-                      {item[faixaCol] || ""}
-                    </td>
-                  </tr>
-                );
-              })
-          )}
+                    {item[faixaCol] || ""}
+                  </td>
+                </tr>
+              );
+            })}
         </tbody>
       </table>
     </div>
