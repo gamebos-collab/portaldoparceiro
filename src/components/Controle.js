@@ -291,14 +291,15 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
     carregarReversoes();
   }, []);
 
+  // Array de objetos para editar o nome das colunas facilmente
+  // Edite 'label' para mudar o nome exibido, e mantenha 'field' igual ao nome da coluna nos dados
   const COLS = [
-    "Numero do BO",
-    "BO",
-    "Cliente",
-    "Ocorrência",
-    "Data Alteração",
-    "Emp. Resp. Anterior",
-    "Emp. Resp. Nova",
+    { field: "Numero do BO", label: "B.O" },
+    { field: "Cliente", label: "Cliente" },
+    { field: "Ocorrência", label: "Ocorrência" },
+    { field: "Data Alteração", label: "Data de Alteração" },
+    { field: "Emp. Resp. Anterior", label: "Resp. Anterior" },
+    { field: "Emp. Resp. Nova", label: "Resp. Novo" },
   ];
 
   // Função para converter "Data Alteração" em objeto Date (suporta formatos comuns brasileiros)
@@ -335,7 +336,8 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
         background: "#fff",
         borderRadius: "8px",
         boxShadow: "0 2px 6px #0002",
-        padding: "8px 4px",
+        padding: "5px 7px",
+        fontSize: "0.8rem",
       }}
     >
       {loading ? (
@@ -344,11 +346,21 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
             color: "#072d4d",
             textAlign: "center",
             fontWeight: "bold",
-            fontSize: "1.1rem",
+            fontSize: "1.2rem",
             padding: "40px 0",
+            animation: "pulse 1s infinite",
           }}
         >
           Carregando...
+          <style>
+            {`
+        @keyframes pulse {
+          0% { opacity: 1; transform: scale(1);}
+          50% { opacity: 0.3; transform: scale(1.07);}
+          100% { opacity: 1; transform: scale(1);}
+        }
+      `}
+          </style>
         </div>
       ) : (
         <table
@@ -366,11 +378,13 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
                 color: "#ffe200",
               }}
             >
+              {/* Cabeçalho dinâmico com labels editáveis */}
               {COLS.map((col, i) => (
                 <th
-                  key={col}
+                  key={col.field}
                   style={{
-                    padding: "6px 8px",
+                    padding: "5px 7px",
+                    fontSize: "0.8rem",
                     borderRadius:
                       i === 0
                         ? "5px 0 0 0"
@@ -379,7 +393,7 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
                         : "0",
                   }}
                 >
-                  {col}
+                  {col.label}
                 </th>
               ))}
             </tr>
@@ -393,7 +407,7 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
                     background: idx % 2 === 0 ? "#f7faff" : "#eef3fb",
                     color: "#072d4d",
                     cursor: "pointer",
-                    fontSize: "0.8rem",
+                    fontSize: "0.6rem",
                     transition: "background 0.18s, color 0.18s",
                   }}
                   onMouseEnter={(e) => {
@@ -408,12 +422,13 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
                     e.currentTarget.style.fontWeight = "normal";
                   }}
                 >
+                  {/* Células da linha, exibindo campo pelo nome field */}
                   {COLS.map((col) => (
                     <td
-                      key={col}
+                      key={col.field}
                       style={{ padding: "5px 7px", textAlign: "center" }}
                     >
-                      {item[col] || ""}
+                      {item[col.field] || ""}
                     </td>
                   ))}
                 </tr>
@@ -431,6 +446,205 @@ function TabelaReversoes({ centralizadoraSelecionada }) {
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+/*
+ * Para editar o nome das colunas na tabela de B.Os Baixados,
+ * basta alterar o valor do campo 'label' no array COLS abaixo.
+ * Exemplo: { field: "BO", label: "B.O Editável" }
+ */
+
+// Componente para a tabela de B.Os Baixados
+function TabelaBOsBaixados({
+  centralizadoraSelecionada,
+  parceirosDaCentralizadora,
+  dadosExcel,
+}) {
+  // Situações que caracterizam baixados
+  const PARECER_BAIXADOS = [
+    "DEVOLVIDO A FILIAL PARA CORRECAO",
+    "AGUARDANDO COBRANCA",
+    "AGUARDANDO ANALISE DO CLIENTE",
+    "COBRANCA ENCAMINHADA FILIAL RESP ",
+  ];
+
+  // Array de objetos para fácil edição do nome das colunas
+  // Edite o campo 'label' para mudar o nome exibido no cabeçalho da tabela
+  // NÃO altere o campo 'field', pois ele corresponde ao nome da coluna nos seus dados
+  const COLS = [
+    { field: "BO", label: "B.O" },
+    { field: "Nr Ct", label: "CT-e" },
+    { field: "Ocorrência", label: "Ocorrência" },
+    { field: "Parecer", label: "Situação" },
+    { field: "Resp", label: "Responsável" },
+    { field: "Centralizadora", label: "Centralizadora" },
+    { field: "Dt Parecer", label: "Data do Parecer" },
+  ];
+
+  // Função para converter número Excel ou string data para "DD/MM/YYYY"
+  const formatDtParecer = (val) => {
+    if (!val) return "";
+    // Se já vier como string
+    if (typeof val === "string" && val.includes("/")) return val;
+    // Se vier em formato número Excel
+    if (typeof val === "number") {
+      // Excel date to JS date:
+      // Excel's day 0 is 1899-12-30, JS's is 1970-01-01
+      const excelEpoch = new Date(1899, 11, 30);
+      const jsDate = new Date(excelEpoch.getTime() + val * 24 * 60 * 60 * 1000);
+      const dia = jsDate.getDate().toString().padStart(2, "0");
+      const mes = (jsDate.getMonth() + 1).toString().padStart(2, "0");
+      const ano = jsDate.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+    return "";
+  };
+
+  // Filtra B.Os baixados para a centralizadora:
+  const bosBaixados = (dadosExcel || []).filter((item) => {
+    const parecer = (item["Parecer"] || "").toString().trim().toUpperCase();
+    const centralizadora = (item["Centralizadora"] || "")
+      .toString()
+      .trim()
+      .toUpperCase();
+    const resp = (item["Resp"] || "").toString().trim().toUpperCase();
+
+    // Verifica se o parecer está em uma das situações baixadas
+    const isBaixado = PARECER_BAIXADOS.some((val) => parecer.startsWith(val));
+
+    // O registro pertence à centralizadora se:
+    // 1. A centralizadora for igual à selecionada
+    // 2. OU, o Resp for um parceiro da centralizadora selecionada
+    const isDaCentralizadoraDireto =
+      centralizadora === (centralizadoraSelecionada || "").toUpperCase();
+    const isParceiro = (parceirosDaCentralizadora || []).includes(resp);
+
+    return isBaixado && (isDaCentralizadoraDireto || isParceiro);
+  });
+
+  // Ordena pela data "Dt Parecer" (mais recente primeiro)
+  const parseDate = (val) => {
+    if (!val) return new Date(0);
+    // Se for número Excel
+    if (typeof val === "number") {
+      const excelEpoch = new Date(1899, 11, 30);
+      return new Date(excelEpoch.getTime() + val * 24 * 60 * 60 * 1000);
+    }
+    // Se for string "dd/mm/yyyy"
+    if (typeof val === "string" && val.includes("/")) {
+      const [d, m, y] = val.split("/");
+      if (d && m && y) return new Date(Number(y), Number(m) - 1, Number(d));
+    }
+    return new Date(val);
+  };
+
+  const bosBaixadosOrdenados = [...bosBaixados].sort((a, b) => {
+    const dateA = parseDate(a["Dt Parecer"]);
+    const dateB = parseDate(b["Dt Parecer"]);
+    return dateB - dateA;
+  });
+
+  // Interatividade ao passar mouse: linha pulsante e negrito
+  const handleMouseEnter = (e) => {
+    e.currentTarget.style.background = "#ffe200";
+    e.currentTarget.style.color = "#072d4d";
+    e.currentTarget.style.fontWeight = "bold";
+    e.currentTarget.style.animation = "pulse 1s infinite";
+  };
+  const handleMouseLeave = (e, idx) => {
+    e.currentTarget.style.background = idx % 2 === 0 ? "#f7faff" : "#eef3fb";
+    e.currentTarget.style.color = "#072d4d";
+    e.currentTarget.style.fontWeight = "normal";
+    e.currentTarget.style.animation = "none";
+  };
+
+  return (
+    <div
+      style={{
+        marginTop: "16px",
+        color: "#072d4d",
+        textAlign: "center",
+        background: "#fff",
+        borderRadius: "8px",
+        padding: "8px 4px",
+        maxHeight: "270px",
+        overflowY: "auto",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "0.8rem",
+        }}
+      >
+        <thead>
+          <tr style={{ background: "#18304b", color: "#ffe200" }}>
+            {COLS.map((col, i) => (
+              <th
+                key={col.field}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius:
+                    i === 0
+                      ? "5px 0 0 0"
+                      : i === COLS.length - 1
+                      ? "0 5px 0 0"
+                      : "0",
+                }}
+              >
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bosBaixadosOrdenados.length > 0 ? (
+            bosBaixadosOrdenados.map((item, idx) => (
+              <tr
+                key={idx}
+                style={{
+                  background: idx % 2 === 0 ? "#f7faff" : "#eef3fb",
+                  color: "#072d4d",
+                  fontSize: "0.6rem",
+                  textAlign: "center",
+                  cursor: "pointer",
+                  transition: "background 0.18s, color 0.18s",
+                }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={(e) => handleMouseLeave(e, idx)}
+              >
+                {COLS.map((col) => (
+                  <td
+                    key={col.field}
+                    style={{ padding: "5px 7px", textAlign: "center" }}
+                  >
+                    {col.field === "Dt Parecer"
+                      ? formatDtParecer(item["Dt Parecer"])
+                      : item[col.field] || ""}
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td
+                colSpan={COLS.length}
+                style={{ textAlign: "center", color: "#072d4d" }}
+              >
+                Nenhum B.O baixado encontrado para esta centralizadora.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      {/* Pulse animation CSS inlined */}
+      <style>{`
+        @keyframes pulse {
+          0% { opacity: 1; }
+      `}</style>
     </div>
   );
 }
@@ -758,7 +972,21 @@ export default function Home() {
     return FAIXAS_CRITICAS.includes((item[faixaCol] || "").trim());
   });
 
-  // Renderiza tabela dos B.Os críticos
+  // Funções para interatividade do mouse
+  const handleMouseEnter = (e) => {
+    e.currentTarget.style.background = "#ffe200";
+    e.currentTarget.style.color = "#072d4d";
+    e.currentTarget.style.fontWeight = "bold";
+    e.currentTarget.style.animation = "pulse 1s infinite";
+  };
+  const handleMouseLeave = (e, idx, isCritico) => {
+    e.currentTarget.style.background = idx % 2 === 0 ? "#f7faff" : "#eef3fb";
+    e.currentTarget.style.color = isCritico ? "red" : "#072d4d";
+    e.currentTarget.style.fontWeight = "normal";
+    e.currentTarget.style.animation = "none";
+  };
+
+  // Renderiza tabela dos B.Os críticos com interatividade do mouse
   const renderBOsCriticos = () => (
     <div
       style={{
@@ -781,16 +1009,15 @@ export default function Home() {
         <thead>
           <tr style={{ background: "#18304b", color: "#ffe200" }}>
             <th style={{ padding: "6px 8px", borderRadius: "5px 0 0 0" }}>
-              Unidade
+              B.O
             </th>
-            <th style={{ padding: "6px 8px" }}>BO</th>
             <th style={{ padding: "6px 8px" }}>CT-e</th>
             <th style={{ padding: "6px 8px" }}>Ocorrência</th>
             <th style={{ padding: "6px 8px" }}>Valor</th>
-            <th style={{ padding: "6px 8px" }}>Responsabilidade</th>
-            <th style={{ padding: "6px 8px" }}>Notas Fiscais</th>
+            <th style={{ padding: "6px 8px" }}>Resp.</th>
+            <th style={{ padding: "6px 8px" }}>Nota Fiscal</th>
             <th style={{ padding: "6px 8px", borderRadius: "0 5px 0 0" }}>
-              Faixa
+              Nível
             </th>
           </tr>
         </thead>
@@ -816,12 +1043,15 @@ export default function Home() {
                     color: isCritico ? "red" : "#072d4d",
                     fontSize: 10,
                     textAlign: "center",
+                    cursor: "pointer",
+                    transition: "background 0.18s, color 0.18s",
                   }}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={(e) => handleMouseLeave(e, idx, isCritico)}
                 >
                   <td style={{ padding: "5px 7px", fontWeight: 700 }}>
-                    {item["Unidade"] || ""}
+                    {item["BO"] || ""}
                   </td>
-                  <td style={{ padding: "5px 7px" }}>{item["Nr BO"] || ""}</td>
                   <td style={{ padding: "5px 7px" }}>{item["Nr Ct"] || ""}</td>
                   <td style={{ padding: "5px 7px" }}>
                     {item["Ocorrência"] || ""}
@@ -851,6 +1081,12 @@ export default function Home() {
             })}
         </tbody>
       </table>
+      {/* Pulse animation CSS inlined */}
+      <style>{`
+      @keyframes pulse {
+        0% { opacity: 1; }
+      }
+    `}</style>
     </div>
   );
 
@@ -859,23 +1095,14 @@ export default function Home() {
     <TabelaReversoes centralizadoraSelecionada={centralizadoraSelecionada} />
   );
 
-  // ABA B.O's BAIXADOS (estrutura pronta para buscar por nome de coluna futuramente)
-  const renderBOsBaixados = () => {
-    return (
-      <div
-        style={{
-          marginTop: "16px",
-          color: "#072d4d",
-          textAlign: "center",
-          background: "#fff",
-          borderRadius: "8px",
-          padding: "16px",
-        }}
-      >
-        Conteúdo de B.O's Baixados estará disponível em breve...
-      </div>
-    );
-  };
+  // ABA B.O's BAIXADOS
+  const renderBOsBaixados = () => (
+    <TabelaBOsBaixados
+      centralizadoraSelecionada={centralizadoraSelecionada}
+      parceirosDaCentralizadora={parceirosDaCentralizadora}
+      dadosExcel={dadosExcel}
+    />
+  );
 
   // Renderiza o popup
   const renderPopup = () => {
