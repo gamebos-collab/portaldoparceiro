@@ -255,6 +255,157 @@ const barColors = [
   "#00e676",
 ];
 
+// Componente para a tabela de reversões
+function TabelaReversoes() {
+  const [reversoes, setReversoes] = useState([]);
+
+  useEffect(() => {
+    const carregarReversoes = async () => {
+      try {
+        const res = await fetch("/kpiparceiro.xlsm");
+        if (!res.ok) return;
+        const data = await res.arrayBuffer();
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets["Query Reversão"];
+        if (!sheet) return;
+        const reversoesJson = XLSX.utils.sheet_to_json(sheet, {
+          range: 6, // linha 7 zero based
+          defval: "",
+        });
+        setReversoes(reversoesJson);
+      } catch {
+        setReversoes([]);
+      }
+    };
+    carregarReversoes();
+  }, []);
+
+  const COLS = [
+    "Empresa BO",
+    "BO",
+    "Empresa Responsável",
+    "Cliente",
+    "Ocorrência",
+    "Data Alteração",
+    "Emp. Resp. Nova",
+  ];
+
+  // Função para converter "Data Alteração" em objeto Date (suporta formatos comuns brasileiros)
+  const parseDate = (dataStr) => {
+    if (!dataStr) return new Date(0);
+    // tenta dd/mm/yyyy ou dd/mm/yy
+    const [d, m, y] = dataStr.split("/");
+    if (d && m && y) {
+      // caso venha 2 dígitos no ano, converte para 20xx
+      const year = y.length === 2 ? "20" + y : y;
+      return new Date(Number(year), Number(m) - 1, Number(d));
+    }
+    // fallback para Date.parse
+    return new Date(dataStr);
+  };
+
+  // Ordena reversoes pela "Data Alteração" (mais recente primeiro)
+  const reversoesOrdenadas = [...reversoes].sort((a, b) => {
+    const dateA = parseDate(a["Data Alteração"]);
+    const dateB = parseDate(b["Data Alteração"]);
+    return dateB - dateA;
+  });
+
+  return (
+    <div
+      style={{
+        maxHeight: "270px",
+        overflowY: "auto",
+        marginTop: "16px",
+        background: "#fff",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px #0002",
+        padding: "8px 4px",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "0.88rem",
+        }}
+      >
+        <thead>
+          <tr
+            style={{
+              fontSize: "0.8rem",
+              background: "#18304b",
+              color: "#ffe200",
+            }}
+          >
+            {COLS.map((col, i) => (
+              <th
+                key={col}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius:
+                    i === 0
+                      ? "5px 0 0 0"
+                      : i === COLS.length - 1
+                      ? "0 5px 0 0"
+                      : "0",
+                }}
+              >
+                {col}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {reversoesOrdenadas && reversoesOrdenadas.length > 0 ? (
+            reversoesOrdenadas.map((item, idx) => (
+              <tr
+                key={idx}
+                style={{
+                  background: idx % 2 === 0 ? "#f7faff" : "#eef3fb",
+                  color: "#072d4d",
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                  transition: "background 0.18s, color 0.18s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#ffe200";
+                  e.currentTarget.style.color = "#072d4d";
+                  e.currentTarget.style.fontWeight = "bold";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background =
+                    idx % 2 === 0 ? "#f7faff" : "#eef3fb";
+                  e.currentTarget.style.color = "#072d4d";
+                  e.currentTarget.style.fontWeight = "normal";
+                }}
+              >
+                {COLS.map((col) => (
+                  <td
+                    key={col}
+                    style={{ padding: "5px 7px", textAlign: "center" }}
+                  >
+                    {item[col] || ""}
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td
+                colSpan={COLS.length}
+                style={{ textAlign: "center", color: "#072d4d" }}
+              >
+                Nenhuma reversão encontrada.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function Home() {
   const [dadosExcel, setDadosExcel] = useState([]);
   const [estadoSelecionado, setEstadoSelecionado] = useState(null);
@@ -673,23 +824,9 @@ export default function Home() {
       </table>
     </div>
   );
-  // ABA REVERSÕES (estrutura pronta para buscar por nome de coluna futuramente)
-  const renderBOsRevercoes = () => {
-    return (
-      <div
-        style={{
-          marginTop: "16px",
-          color: "#072d4d",
-          textAlign: "center",
-          background: "#fff",
-          borderRadius: "8px",
-          padding: "16px",
-        }}
-      >
-        Conteúdo de Reversões estará disponível em breve...
-      </div>
-    );
-  };
+
+  // ABA REVERSÕES
+  const renderBOsRevercoes = () => <TabelaReversoes />;
 
   // ABA B.O's BAIXADOS (estrutura pronta para buscar por nome de coluna futuramente)
   const renderBOsBaixados = () => {
@@ -759,7 +896,7 @@ export default function Home() {
       const abas = [
         { key: "visao", label: "Visão Geral" },
         { key: "grafico", label: "Gráfico" },
-        { key: "criticos", label: "B.O's Críticos" },
+        { key: "criticos", label: "Criticidade" },
         { key: "revercoes", label: "Reversões" },
         { key: "baixados", label: "B.O's Baixados" },
       ];
