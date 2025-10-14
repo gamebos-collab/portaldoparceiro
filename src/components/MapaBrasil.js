@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import brasilEstados from "../data/brasil-estados.json";
 import "./MapaBrasil.css";
+import logo from "../assets/background.png";
 
 // Mapeia cada estado para as centralizadoras correspondentes
 const estadoCentralizadoras = {
@@ -16,6 +17,9 @@ const estadoCentralizadoras = {
   Ceará: ["CRA"],
   // Adicione outros estados se necessário
 };
+{
+  /* Marca d'água atrás do mapa */
+}
 
 // REGIÕES QUE VÃO TER COR DIFERENCIADA
 const regioesColoridas = {
@@ -76,19 +80,57 @@ export default function MapaBrasil({ onEstadoSelecionado }) {
   };
 
   return (
-    <div className="mapa-container">
-      <MapContainer
-        center={[-15.78, -47.93]}
-        zoom={4}
-        style={{ width: "100%", height: "100vh" }}
-        scrollWheelZoom={false}
-        zoomControl={false}
-        doubleClickZoom={false}
-        dragging={false}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        position: "relative",
+        width: "100%",
+        height: "100vh",
+      }}
+      className="mapa-bg-container"
+    >
+      {/* Marca d'água atrás do mapa */}
+      <img
+        src={logo}
+        alt="Marca d'água"
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "125%",
+          transform: "translate(-50%, -50%)",
+          opacity: 0.09,
+          maxHeight: "100vh",
+          maxWidth: "500vw",
+          zIndex: 0,
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      />
+
+      {/* Mapa em cima da marca d'água */}
+      <div
+        className="mapa-container"
+        style={{
+          width: "100%",
+          height: "100vh",
+          position: "relative",
+          zIndex: 1,
+        }}
       >
-        <GeoJSON data={brasilEstados} onEachFeature={onEachFeature} />
-        <AjustarMapaAoBrasil />
-      </MapContainer>
+        <MapContainer
+          center={[-15.78, -47.93]}
+          zoom={4}
+          style={{ width: "100%", height: "100vh" }}
+          scrollWheelZoom={false}
+          zoomControl={false}
+          doubleClickZoom={false}
+          dragging={false}
+        >
+          <GeoJSON data={brasilEstados} onEachFeature={onEachFeature} />
+          <AjustarMapaAoBrasil />
+        </MapContainer>
+      </div>
     </div>
   );
 }
