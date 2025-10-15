@@ -341,7 +341,7 @@
   color: #ffe200; /* Cor vibrante (amarelo) */
   font-size: 2rem; /* Tamanho de fonte maior */
   font-weight: bold;
-  margin: 20px 0;
+  margin: 5px 0;
   transition: all 0.3s ease; /* Suaviza a animação */
   cursor: pointer; /* Indica interatividade */
 }
@@ -364,6 +364,10 @@
   transform: scale(1.05);
   background-color: #23376b;
   box-shadow: 0 4px 16px #ffe200;
+}
+
+.clientes-risco-titulo.risco3 {
+  color: #ffe200 !important; /* vermelho forte */
 }
 .monitoramento-loading {
   text-align: center;

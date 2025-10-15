@@ -157,6 +157,7 @@ export default function Monitoramento() {
   const [clientesRiscoReais, setClientesRiscoReais] = useState([]);
   const [rankingAnterior, setRankingAnterior] = useState([]);
   const [hoveredOfensora, setHoveredOfensora] = useState(null);
+  const [clientesOnboarding, setClientesOnboarding] = useState([]);
 
   useEffect(() => {
     const carregarExcel = async () => {
@@ -199,6 +200,40 @@ export default function Monitoramento() {
         if (abaRisco) {
           const ref = abaRisco["!ref"];
           const range = XLSX.utils.decode_range(ref);
+
+          // Encontrar a linha de "Clientes Omboarding (Novos Clientes)" na coluna D
+          let onboardingStart = null;
+          for (let r = 1; r <= range.e.r + 1; r++) {
+            const cellD = abaRisco[`D${r}`];
+            if (
+              cellD &&
+              String(cellD.v).toLowerCase().includes("clientes omboarding")
+            ) {
+              onboardingStart = r + 1;
+              break;
+            }
+          }
+
+          // Clientes Omboarding
+          let onboardingClientes = [];
+          if (onboardingStart) {
+            for (let r = onboardingStart; r <= range.e.r + 1; r++) {
+              const cellD = abaRisco[`D${r}`];
+              const nome = cellD ? String(cellD.v).trim() : "";
+              if (!nome || nome.toLowerCase().includes("total geral")) break;
+              onboardingClientes.push({
+                nome,
+                dias5: abaRisco[`E${r}`]?.v || "",
+                dias10: abaRisco[`F${r}`]?.v || "",
+                dias15: abaRisco[`G${r}`]?.v || "",
+                acima15: abaRisco[`H${r}`]?.v || "",
+                total: abaRisco[`I${r}`]?.v || "",
+              });
+            }
+          }
+          setClientesOnboarding(onboardingClientes);
+
+          // CLIENTES EM RISCO (3-2-1), não inclui omboarding
           let riscos = [
             { risco: 3, clientes: [] },
             { risco: 2, clientes: [] },
@@ -228,6 +263,8 @@ export default function Monitoramento() {
               continue;
             }
             if (!valorD || !riscoAtual) continue;
+            // PARE quando encontrar a linha de omboarding!
+            if (valorD.toLowerCase().includes("clientes omboarding")) break;
             const idx = 3 - riscoAtual;
             riscos[idx].clientes.push({
               nome: valorD,
@@ -400,16 +437,6 @@ export default function Monitoramento() {
     if (mesIdx >= 0 && mesIdx <= 11) bosPorMes[mesIdx].bos++;
   });
 
-  // --- CSS para exibir os quadros lado a lado ---
-  const clientesRiscoQuadrosStyle = {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "center", // Centraliza os cards horizontalmente
-    alignItems: "flex-start", // Alinha os cards pelo topo
-    width: "100%", // Ocupa toda a largura disponível
-    boxSizing: "border-box", // Garante que padding não ultrapasse a largura
-  };
-
   return (
     <div className="monitoramento-page">
       <div className="monitoramento-header"></div>
@@ -547,12 +574,66 @@ export default function Monitoramento() {
                     para melhorar os resultados.
                   </span>
                 </div>
+                {/* TABELA CLIENTES ONBOARDING */}
+                <div
+                  className="clientes-risco-cards-linha"
+                  style={{ marginTop: 32 }}
+                >
+                  <div className="clientes-risco-card risco3">
+                    <div className="clientes-risco-titulo risco3">
+                      Clientes Omboarding
+                    </div>
+                    <table className="clientes-risco-tabela">
+                      <thead>
+                        <tr>
+                          <th>Nome do Cliente</th>
+                          <th style={{ background: riscoColors[0] }}>
+                            até 5 dias
+                          </th>
+                          <th style={{ background: riscoColors[1] }}>
+                            até 10 dias
+                          </th>
+                          <th style={{ background: riscoColors[2] }}>
+                            até 15 dias
+                          </th>
+                          <th style={{ background: riscoColors[3] }}>
+                            acima de 15 dias
+                          </th>
+                          <th style={{ background: "#ffe200" }}>Total Geral</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {clientesOnboarding.map((cli, idx) => (
+                          <tr key={cli.nome + idx}>
+                            <td className="cliente-nome">{cli.nome}</td>
+                            <td style={{ background: riscoColors[0] }}>
+                              {cli.dias5}
+                            </td>
+                            <td style={{ background: riscoColors[1] }}>
+                              {cli.dias10}
+                            </td>
+                            <td style={{ background: riscoColors[2] }}>
+                              {cli.dias15}
+                            </td>
+                            <td style={{ background: riscoColors[3] }}>
+                              {cli.acima15}
+                            </td>
+                            <td style={{ background: "#ffe200" }}>
+                              {cli.total}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                {/* FIM TABELA CLIENTES ONBOARDING */}
               </div>
-              {/* FIM Card de evolução por mês */}
+              {/* FIM evolucao mensal */}
             </div>
           </div>
 
-          <h1 class="titulo-clientes-risco">Clientes em Risco</h1>
+          <h1 className="titulo-clientes-risco"></h1>
 
           {/* PARTE INFERIOR */}
           <div className="monitoramento-section monitoramento-inferior">
@@ -568,7 +649,6 @@ export default function Monitoramento() {
                     >
                       Risco {riscoItem.risco}
                     </div>
-
                     <table className="clientes-risco-tabela">
                       <thead>
                         <tr>
@@ -582,11 +662,7 @@ export default function Monitoramento() {
                           <th style={{ background: riscoColors[2] }}>
                             até 15 dias
                           </th>
-                          <th
-                            style={{
-                              background: riscoColors[3],
-                            }}
-                          >
+                          <th style={{ background: riscoColors[3] }}>
                             acima de 15 dias
                           </th>
                         </tr>
@@ -604,11 +680,7 @@ export default function Monitoramento() {
                             <td style={{ background: riscoColors[2] }}>
                               {cli.dias15}
                             </td>
-                            <td
-                              style={{
-                                background: riscoColors[3],
-                              }}
-                            >
+                            <td style={{ background: riscoColors[3] }}>
                               {cli.acima15}
                             </td>
                           </tr>
