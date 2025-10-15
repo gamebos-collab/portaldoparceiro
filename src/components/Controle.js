@@ -464,8 +464,7 @@ function TabelaBOsBaixados({
 }) {
   // Situações que caracterizam baixados
   const PARECER_BAIXADOS = [
-    "DEVOLVIDO A FILIAL PARA CORRECAO",
-    "AGUARDANDO COBRANCA",
+    "EM ANALISE / TRATATIVAS DA GESTAO",
     "AGUARDANDO ANALISE DO CLIENTE",
     "COBRANCA ENCAMINHADA FILIAL RESP ",
   ];
@@ -1156,7 +1155,7 @@ export default function Home() {
         { key: "grafico", label: "Gráfico" },
         { key: "criticos", label: "Criticidade" },
         { key: "revercoes", label: "Reversões" },
-        { key: "baixados", label: "B.O's Baixados" },
+        { key: "baixados", label: "B.O's Análises" },
       ];
 
       const renderAbaConteudo = () => {
