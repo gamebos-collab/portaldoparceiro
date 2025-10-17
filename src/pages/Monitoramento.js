@@ -633,12 +633,12 @@ export default function GestaoParceiros() {
                         <linearGradient id="boBar" x1="0" y1="0" x2="0" y2="1">
                           <stop
                             offset="0%"
-                            stopColor="#ff9100"
+                            stopColor="#ff9100ff"
                             stopOpacity={0.85}
                           />
                           <stop
                             offset="100%"
-                            stopColor="#ffb347"
+                            stopColor="#ffe100ff"
                             stopOpacity={0.85}
                           />
                         </linearGradient>
@@ -715,7 +715,7 @@ export default function GestaoParceiros() {
                         name="Total B.Os"
                         fill="url(#boBar)"
                         barSize={32}
-                        radius={[10, 10, 0, 0]}
+                        radius={[1, 100, 0, 0]}
                         isAnimationActive={true}
                         animationDuration={800}
                         onClick={(data, idx) => handleBarClick(data, idx)}
@@ -728,10 +728,10 @@ export default function GestaoParceiros() {
                             fill={getBarColor(idx, "bos")}
                             cursor="pointer"
                             style={{
-                              transition: "filter 0.23s",
+                              transition: "filter 0.63s",
                               filter:
                                 activeBar === idx
-                                  ? "drop-shadow(0 0 10px #ff9100cc)"
+                                  ? "drop-shadow(0 0 10px #ffffffda)"
                                   : "none",
                             }}
                           />
