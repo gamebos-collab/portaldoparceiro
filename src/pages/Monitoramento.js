@@ -204,11 +204,108 @@ export default function GestaoParceiros() {
   const [rankingAnterior, setRankingAnterior] = useState([]);
   const [hoveredOfensora, setHoveredOfensora] = useState(null);
   const [clientesOnboarding, setClientesOnboarding] = useState([]);
-  const [activeBar, setActiveBar] = useState(-1); // Para destacar barra clicada
-  const [selectedBar, setSelectedBar] = useState(null); // Para exibir info ao clicar
+  const [activeBar, setActiveBar] = useState(-1);
+  const [selectedBar, setSelectedBar] = useState(null);
   const chartRef = useRef(null);
 
-  // Carregar arquivo principal (igual ao original)
+  // estados para valores vindos das células
+  const [totalBOsCellValue, setTotalBOsCellValue] = useState(null); // será obtido como "última célula não vazia" na coluna P (Diário CD)
+  const [totalSemParecerCellValue, setTotalSemParecerCellValue] =
+    useState(null); // X15
+
+  // parse robusto de números vindos do Excel (string com pontos/vírgulas, espaços, CPFs, etc.)
+  function parseExcelNumber(val) {
+    if (val === null || val === undefined || val === "") return null;
+    if (typeof val === "number") return val;
+    let s = String(val).trim();
+    if (!s) return null;
+    s = s.replace(/\u00A0/g, " ").trim();
+    // remove tudo que não seja dígito, vírgula, ponto ou sinal de menos
+    const cleaned = s.replace(/[^\d\-,.]/g, "");
+    if (!cleaned) return null;
+    let normalized = cleaned;
+    if (cleaned.indexOf(",") > -1 && cleaned.indexOf(".") > -1) {
+      // Ex.: "1.648,00" -> "1648.00"
+      normalized = cleaned.replace(/\./g, "").replace(/,/g, ".");
+    } else if (cleaned.indexOf(",") > -1 && cleaned.indexOf(".") === -1) {
+      // Ex.: "352,33" -> "352.33"
+      normalized = cleaned.replace(/,/g, ".");
+    } else {
+      // Ex.: "1.648" -> "1648"
+      normalized = cleaned.replace(/\./g, "");
+    }
+    const n = Number(normalized);
+    return isNaN(n) ? null : n;
+  }
+
+  // busca valor de célula em todas as abas (fallback para X15 se necessário)
+  function findCellValueInWorkbook(workbook, cellAddr) {
+    for (const name of workbook.SheetNames) {
+      const sh = workbook.Sheets[name];
+      if (
+        sh &&
+        sh[cellAddr] &&
+        sh[cellAddr].v !== undefined &&
+        sh[cellAddr].v !== null &&
+        String(sh[cellAddr].v).trim() !== ""
+      ) {
+        return { value: sh[cellAddr].v, sheetName: name };
+      }
+    }
+    return null;
+  }
+
+  // encontra a última célula não-vazia em uma coluna (colLetter, ex: 'P') dentro de uma sheet
+  function findLastNonEmptyInColumn(sheet, colLetter) {
+    if (!sheet || !sheet["!ref"]) return null;
+    const range = XLSX.utils.decode_range(sheet["!ref"]);
+    // iterar de baixo para cima
+    for (let r = range.e.r + 1; r >= 1; r--) {
+      const addr = `${colLetter}${r}`;
+      const cell = sheet[addr];
+      if (
+        cell &&
+        cell.v !== undefined &&
+        cell.v !== null &&
+        String(cell.v).trim() !== ""
+      ) {
+        return { value: cell.v, row: r };
+      }
+    }
+    return null;
+  }
+
+  // procura a última célula não-vazia em uma coluna por toda a workbook;
+  // prioriza a aba "Diário CD" se existir, senão busca entre todas e retorna a que tiver maior número de linha (mais "abaixo")
+  function findLastNonEmptyInColumnAcrossWorkbook(
+    workbook,
+    colLetter,
+    preferredSheetName
+  ) {
+    // try preferred first
+    if (
+      preferredSheetName &&
+      workbook.SheetNames.includes(preferredSheetName)
+    ) {
+      const sh = workbook.Sheets[preferredSheetName];
+      const found = findLastNonEmptyInColumn(sh, colLetter);
+      if (found) return { ...found, sheetName: preferredSheetName };
+    }
+    // otherwise search all and pick the one with the largest row index
+    let best = null;
+    for (const name of workbook.SheetNames) {
+      const sh = workbook.Sheets[name];
+      if (!sh || !sh["!ref"]) continue;
+      const found = findLastNonEmptyInColumn(sh, colLetter);
+      if (found) {
+        if (!best || (found.row && found.row > best.row)) {
+          best = { ...found, sheetName: name };
+        }
+      }
+    }
+    return best;
+  }
+
   useEffect(() => {
     const carregarExcel = async () => {
       try {
@@ -220,13 +317,15 @@ export default function GestaoParceiros() {
         }
         const data = await res.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets["Dados"];
-        if (!sheet) {
+
+        // monta dados da aba "Dados"
+        const sheetDados = workbook.Sheets["Dados"];
+        if (!sheetDados) {
           setErro("A aba 'Dados' não foi encontrada no Excel.");
           setLoading(false);
           return;
         }
-        const allRows = XLSX.utils.sheet_to_json(sheet, {
+        const allRows = XLSX.utils.sheet_to_json(sheetDados, {
           header: 1,
           defval: "",
         });
@@ -243,26 +342,135 @@ export default function GestaoParceiros() {
           });
         setDados(json);
 
+        // -------- Total de B.Os: encontrar ÚLTIMA célula com conteúdo na coluna P da aba "Diário CD"
+        const diarioSheetName = "Diário CD";
+        const columnP = "P";
+
+        const foundLastP = findLastNonEmptyInColumnAcrossWorkbook(
+          workbook,
+          columnP,
+          diarioSheetName
+        );
+        if (foundLastP) {
+          const parsed = parseExcelNumber(foundLastP.value);
+          if (parsed !== null && Number.isFinite(parsed)) {
+            setTotalBOsCellValue(Math.round(parsed));
+            console.debug(
+              `Total (col ${columnP}) lido da aba "${foundLastP.sheetName}" na linha ${foundLastP.row}:`,
+              foundLastP.value
+            );
+          } else {
+            // ainda tenta usar raw value como fallback se for string exibível
+            if (
+              foundLastP.value !== null &&
+              foundLastP.value !== undefined &&
+              String(foundLastP.value).trim() !== ""
+            ) {
+              // exibir como fallback se não for parseável, mas preferimos número
+              setTotalBOsCellValue(foundLastP.value);
+              console.debug(
+                `Valor encontrado na coluna ${columnP} (não numérico após parse):`,
+                foundLastP.value,
+                "na aba",
+                foundLastP.sheetName,
+                "linha",
+                foundLastP.row
+              );
+            } else {
+              setTotalBOsCellValue(null);
+            }
+          }
+        } else {
+          console.debug(
+            `Nenhuma célula não-vazia encontrada na coluna ${columnP} em todo o workbook.`
+          );
+          setTotalBOsCellValue(null);
+        }
+
+        // -------- B.Os Sem Parecer: manter leitura da célula X15 na aba "Diário CD" (fallback em todo workbook)
+        const diarioSheet = workbook.Sheets[diarioSheetName];
+        if (diarioSheet) {
+          try {
+            const cellX15 = diarioSheet["X15"] ? diarioSheet["X15"].v : null;
+            const parsedX15 = parseExcelNumber(cellX15);
+            if (parsedX15 !== null && Number.isFinite(parsedX15)) {
+              setTotalSemParecerCellValue(Math.round(parsedX15));
+              console.debug(`X15 lida da aba "${diarioSheetName}":`, cellX15);
+            } else {
+              console.debug(
+                `X15 encontrada na aba "${diarioSheetName}" mas não é numérica:`,
+                cellX15
+              );
+              setTotalSemParecerCellValue(null);
+            }
+          } catch (e) {
+            console.debug("Erro lendo X15 da aba Diário CD:", e);
+            setTotalSemParecerCellValue(null);
+          }
+        } else {
+          // fallback: procurar X15 em qualquer aba
+          const foundX15 = findCellValueInWorkbook(workbook, "X15");
+          if (foundX15) {
+            const parsed = parseExcelNumber(foundX15.value);
+            if (parsed !== null && Number.isFinite(parsed)) {
+              setTotalSemParecerCellValue(Math.round(parsed));
+              console.debug(
+                `X15 lida da aba "${foundX15.sheetName}":`,
+                foundX15.value
+              );
+            } else {
+              console.debug(
+                `X15 encontrada na aba "${foundX15.sheetName}" porém parse retornou nulo:`,
+                foundX15.value
+              );
+              setTotalSemParecerCellValue(null);
+            }
+          } else {
+            console.debug("X15 não encontrada em nenhuma aba do workbook.");
+            setTotalSemParecerCellValue(null);
+          }
+        }
+
         // CLIENTES EM RISCO (aba "Clientes em Risco")
         const abaRisco = workbook.Sheets["Clientes em Risco"];
         if (abaRisco) {
           const ref = abaRisco["!ref"];
-          const range = XLSX.utils.decode_range(ref);
+          const range = ref ? XLSX.utils.decode_range(ref) : null;
 
           let onboardingStart = null;
-          for (let r = 1; r <= range.e.r + 1; r++) {
-            const cellD = abaRisco[`D${r}`];
-            if (
-              cellD &&
-              String(cellD.v).toLowerCase().includes("clientes omboarding")
-            ) {
-              onboardingStart = r + 1;
-              break;
+          if (range) {
+            for (let r = 1; r <= range.e.r + 1; r++) {
+              const cellD = abaRisco[`D${r}`];
+              if (
+                cellD &&
+                String(cellD.v).toLowerCase().includes("clientes omboarding")
+              ) {
+                onboardingStart = r + 1;
+                break;
+              }
+            }
+          } else {
+            // fallback with sheet_to_json
+            const allRisco = XLSX.utils.sheet_to_json(abaRisco, {
+              header: 1,
+              defval: "",
+            });
+            for (let r = 0; r < allRisco.length; r++) {
+              if (
+                allRisco[r] &&
+                allRisco[r][3] &&
+                String(allRisco[r][3])
+                  .toLowerCase()
+                  .includes("clientes omboarding")
+              ) {
+                onboardingStart = r + 2;
+                break;
+              }
             }
           }
 
           let onboardingClientes = [];
-          if (onboardingStart) {
+          if (onboardingStart && range) {
             for (let r = onboardingStart; r <= range.e.r + 1; r++) {
               const cellD = abaRisco[`D${r}`];
               const nome = cellD ? String(cellD.v).trim() : "";
@@ -285,39 +493,41 @@ export default function GestaoParceiros() {
             { risco: 1, clientes: [] },
           ];
           let riscoAtual = null;
-          for (let r = 7; r <= range.e.r; r++) {
-            const celulaD = abaRisco[`D${r + 1}`];
-            const celulaE = abaRisco[`E${r + 1}`];
-            const celulaF = abaRisco[`F${r + 1}`];
-            const celulaG = abaRisco[`G${r + 1}`];
-            const celulaH = abaRisco[`H${r + 1}`];
+          if (range) {
+            for (let r = 7; r <= range.e.r; r++) {
+              const celulaD = abaRisco[`D${r + 1}`];
+              const celulaE = abaRisco[`E${r + 1}`];
+              const celulaF = abaRisco[`F${r + 1}`];
+              const celulaG = abaRisco[`G${r + 1}`];
+              const celulaH = abaRisco[`H${r + 1}`];
 
-            const valorD = celulaD ? String(celulaD.v).trim() : "";
-            if (valorD.toLowerCase().startsWith("total")) break;
-            if (/^risco\s*3$/i.test(valorD)) {
-              riscoAtual = 3;
-              continue;
+              const valorD = celulaD ? String(celulaD.v).trim() : "";
+              if (valorD.toLowerCase().startsWith("total")) break;
+              if (/^risco\s*3$/i.test(valorD)) {
+                riscoAtual = 3;
+                continue;
+              }
+              if (/^risco\s*2$/i.test(valorD)) {
+                riscoAtual = 2;
+                continue;
+              }
+              if (/^risco\s*1$/i.test(valorD)) {
+                riscoAtual = 1;
+                continue;
+              }
+              if (!valorD || !riscoAtual) continue;
+              if (valorD.toLowerCase().includes("clientes omboarding")) break;
+              const idx = 3 - riscoAtual;
+              riscos[idx].clientes.push({
+                nome: valorD,
+                dias5: Number(celulaE ? celulaE.v : 0) || 0,
+                dias10: Number(celulaF ? celulaF.v : 0) || 0,
+                dias15: Number(celulaG ? celulaG.v : 0) || 0,
+                acima15: Number(celulaH ? celulaH.v : 0) || 0,
+              });
             }
-            if (/^risco\s*2$/i.test(valorD)) {
-              riscoAtual = 2;
-              continue;
-            }
-            if (/^risco\s*1$/i.test(valorD)) {
-              riscoAtual = 1;
-              continue;
-            }
-            if (!valorD || !riscoAtual) continue;
-            if (valorD.toLowerCase().includes("clientes omboarding")) break;
-            const idx = 3 - riscoAtual;
-            riscos[idx].clientes.push({
-              nome: valorD,
-              dias5: Number(celulaE ? celulaE.v : 0) || 0,
-              dias10: Number(celulaF ? celulaF.v : 0) || 0,
-              dias15: Number(celulaG ? celulaG.v : 0) || 0,
-              acima15: Number(celulaH ? celulaH.v : 0) || 0,
-            });
+            setClientesRiscoReais(riscos);
           }
-          setClientesRiscoReais(riscos);
         }
       } catch (err) {
         setErro("Erro ao processar o arquivo Excel.");
@@ -339,9 +549,16 @@ export default function GestaoParceiros() {
   const COL_15 = "11 a 15";
   const COL_MAIS15 = "> 15";
 
-  const totalBOs = dados.length;
+  // totalBOs prioriza valor lido na coluna P (última célula não vazia)
+  const totalBOsFallback = dados.length;
+  const totalBOsValue =
+    totalBOsCellValue !== null && totalBOsCellValue !== undefined
+      ? totalBOsCellValue
+      : totalBOsFallback;
+
   const hojeStr = getTodayStr();
 
+  // B.Os Abertos (mantém a lógica atual: contabiliza pela data de emissão e zera todo dia)
   const totalAbertosHoje = dados.filter((d) => {
     const dataAbertura = normalizaData(d[COL_EMISSAO]);
     return dataAbertura === hojeStr;
@@ -352,11 +569,15 @@ export default function GestaoParceiros() {
     return dataFechamento === hojeStr;
   }).length;
 
-  const totalSemParecer = dados.filter(
+  // totalSemParecer prioriza X15 quando disponível
+  const totalSemParecerFallback = dados.filter(
     (d) =>
       (d[COL_DIAS_SEM_ACOMP] || "").toString().trim().toLowerCase() ===
       "sem acompanhamento"
   ).length;
+  const totalSemParecerValue = Number.isFinite(totalSemParecerCellValue)
+    ? totalSemParecerCellValue
+    : totalSemParecerFallback;
 
   const totalFaltaTotal = dados.filter(
     (d) =>
@@ -439,7 +660,6 @@ export default function GestaoParceiros() {
     carga: CARGA_MANUAL_MENSAL[chave] ?? 0,
   }));
 
-  // Função para barra clicável e animação personalizada
   const handleBarClick = (data, idx) => {
     setSelectedBar({
       ...data,
@@ -451,7 +671,6 @@ export default function GestaoParceiros() {
     }
   };
 
-  // Custom Tooltip interativo
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -477,7 +696,6 @@ export default function GestaoParceiros() {
     return null;
   };
 
-  // Customização de barra ativa/clicada
   const getBarColor = (idx, key) => {
     if (selectedBar && selectedBar.idx === idx) {
       return key === "bos" ? "url(#bosActiveBar)" : "url(#cargaActiveBar)";
@@ -499,7 +717,9 @@ export default function GestaoParceiros() {
             <div className="monitoramento-metricas">
               <div className="metrica-card">
                 <h4>Total de B.Os</h4>
-                <span>{totalBOs}</span>
+                <span>
+                  {String(Number(totalBOsValue).toLocaleString("pt-BR"))}
+                </span>
               </div>
               <div className="metrica-card">
                 <h4>B.Os Abertos</h4>
@@ -511,7 +731,9 @@ export default function GestaoParceiros() {
               </div>
               <div className="metrica-card">
                 <h4>B.Os Sem Parecer</h4>
-                <span>{totalSemParecer}</span>
+                <span>
+                  {Number(totalSemParecerValue).toLocaleString("pt-BR")}
+                </span>
               </div>
               <div className="metrica-card">
                 <h4>B.Os Falta Total</h4>
@@ -522,6 +744,7 @@ export default function GestaoParceiros() {
                 <span>{totalAvariaTotal}</span>
               </div>
             </div>
+
             <div className="monitoramento-superior-row">
               {/* TOP 10 PARCEIROS MAIS OFENSORES */}
               <div className="unidades-ofensoras-wrapper">
@@ -590,7 +813,6 @@ export default function GestaoParceiros() {
                 <h3 className="evolucao-mensal-titulo">
                   Evolução Mensal de B.Os
                 </h3>
-                {/* Gráfico com barras para todos os meses */}
                 <div className="evolucao-mensal-grafico-container">
                   <ResponsiveContainer width="100%" height={340}>
                     <BarChart
@@ -614,7 +836,7 @@ export default function GestaoParceiros() {
                           fill: "#fff",
                         }}
                         tick={{ fill: "#fff", fontSize: 15 }}
-                        interval={0} // Mostra todos os meses no eixo X
+                        interval={0}
                       />
                       <YAxis
                         allowDecimals={false}
@@ -628,7 +850,6 @@ export default function GestaoParceiros() {
                         tickLine={false}
                         tick={{ fill: "#fff", fontSize: 15 }}
                       />
-                      {/* Gradiente para barras */}
                       <defs>
                         <linearGradient id="boBar" x1="0" y1="0" x2="0" y2="1">
                           <stop
@@ -660,7 +881,6 @@ export default function GestaoParceiros() {
                             stopOpacity={0.85}
                           />
                         </linearGradient>
-                        {/* Barras ativas (clicadas) */}
                         <linearGradient
                           id="bosActiveBar"
                           x1="0"
@@ -708,7 +928,6 @@ export default function GestaoParceiros() {
                         }}
                         iconType="rect"
                       />
-                      {/* B.Os */}
                       <Bar
                         dataKey="bos"
                         stackId="a"
@@ -737,7 +956,6 @@ export default function GestaoParceiros() {
                           />
                         ))}
                       </Bar>
-                      {/* Carga */}
                       <Bar
                         dataKey=""
                         stackId="a"
@@ -768,7 +986,6 @@ export default function GestaoParceiros() {
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                  {/* Detalhe ao clicar em barra: NÃO aparece textarea na página */}
                   {selectedBar && (
                     <div
                       style={{
@@ -860,6 +1077,7 @@ export default function GestaoParceiros() {
                     <br />
                   </span>
                 </div>
+
                 <div
                   className="clientes-risco-cards-linha"
                   style={{ marginTop: 32 }}
