@@ -1,60 +1,124 @@
-.monitoramento-page {
-  padding: 40px 5vw 40px 2vw;
-  background: linear-gradient(100deg, #0d1e40 0%, #23376b 100%);
-  min-height: 100vh;
-  color: #000000;
-  font-family: "Inter", Arial, sans-serif;
+/* variaveis_estilo.css
+   Arquivo final gerado a partir do seu CSS + ajustes que garanti para:
+   - alinhar os 3 cards de risco lado a lado e com mesma altura
+   - permitir truncamento visual de nomes longos (com tooltip via title)
+   - tabela interna com tbody rolável para não estourar a altura do card
+   - tornar as cores das colunas facilmente configuráveis via variáveis no :root
+
+   Mude as cores das colunas editando as variáveis:
+   --col-0-bg, --col-1-bg, --col-2-bg, --col-3-bg e --col-total-bg
+*/
+
+/* ===== VARIÁVEIS CSS (edite aqui para alterar cores / fontes) ===== */
+:root {
+  --primary-bg: linear-gradient(100deg, #122957 0%, #1e3b86 100%);
+  --card-bg: #1c2957;
+  --card-bg-alt: #23376b;
+  --accent-color: #ffe100;
+  --text-primary: #ffffff;
+  --text-secondary: #c9d4e5;
+  --text-muted: #c0c0c0;
+  --danger-color: #ff0000;
+  --warning-color: #ff9800;
+  --success-color: #00ff40;
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 2px 16px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 4px 22px rgba(0, 0, 0, 0.25);
+  --border-radius: 14px;
+  --border-radius-small: 8px;
+  --transition: all 0.3s ease;
+
+  /* CORES DAS COLUNAS - altere só estas para mudar colorações nas tabelas */
+  --col-0-bg: #162d4f; /* coluna do nome (escura) */
+  --col-1-bg: #fffbe7; /* até 5 dias */
+  --col-2-bg: #fff0b3; /* 6 a 10 */
+  --col-3-bg: #ffd98a; /* 11 a 15 */
+  --col-4-bg: #ff4242; /* acima de 15 */
+  --col-total-bg: #ffe200; /* total */
+
+  --col-text-dark: #000000;
+  --col-text-light: #ffffff;
+
+  /* tipografia / layout */
+  --font-base: "Inter", Arial, sans-serif;
+  --font-size-base: 14px;
+  --card-padding: 18px;
+  --card-radius: 14px;
 }
 
+/* ===== LAYOUT PRINCIPAL ===== */
+* {
+  box-sizing: border-box;
+}
+
+/* sobrescreve somente esses cards */
+.clientes-risco-card.risco3 {
+  background: linear-gradient(180deg, #3e1b1b, #5d2b2b);
+  border-radius: 2px;
+  border: 12px solid #1c2957;
+}
+.clientes-risco-card.risco2 {
+  background: linear-gradient(180deg, #2b2b1f, #3f3a28);
+  border-radius: 2px;
+  border: 12px solid #1c2957;
+}
+.clientes-risco-card.risco1 {
+  background: linear-gradient(180deg, #003a2f, #0a5e48);
+  border-radius: 2px;
+  border: 12px solid #1c2957;
+}
+.monitoramento-page {
+  padding: 40px 5vw 40px 2vw;
+  background: var(--primary-bg);
+  min-height: 100vh;
+  color: var(--text-primary);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+}
+
+/* ===== CABEÇALHO ===== */
 .monitoramento-header {
   margin-bottom: 32px;
-  text-align: left;
+  text-align: center;
 }
 .monitoramento-header h1 {
   font-size: 2.4rem;
-  text-align: center;
   font-weight: bold;
-  color: #ffe200;
+  color: var(--accent-color);
+  margin-bottom: 8px;
 }
 .monitoramento-desc {
   font-size: 1.1rem;
-  text-align: center;
-  color: #c9d4e5;
-  margin-top: 8px;
-  display: block;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
-.monitoramento-content-split {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.monitoramento-section {
-  width: 100%;
-}
-
+/* ===== MÉTRICAS ===== */
 .monitoramento-metricas {
   display: flex;
-  gap: 32px;
-  margin-bottom: 0;
+  gap: 24px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
   justify-content: flex-start;
 }
 .metrica-card {
-  background: #1c2957;
+  background: var(--card-bg);
   border-radius: 18px;
-  padding: 12px 28px;
-  min-width: 30px;
-  margin: 1px;
+  padding: 20px 28px;
+  min-width: 120px;
   text-align: center;
-  box-shadow: 0 2px 22px rgba(0, 0, 0, 0.13);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  transition: var(--transition);
   cursor: pointer;
-  color: #ffffff;
+  color: var(--text-primary);
+}
+.metrica-card:hover {
+  transform: scale(1.05);
+  background-color: var(--card-bg-alt);
+  box-shadow: 0 4px 16px var(--accent-color);
 }
 .metrica-card h4 {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1rem;
   font-weight: 400;
   margin-bottom: 10px;
@@ -62,21 +126,23 @@
 .metrica-card span {
   font-size: 2.1rem;
   font-weight: bold;
-  color: #ffe200;
+  color: var(--accent-color);
 }
 
-/* NOVO: linha para Unidades mais Ofensoras + Evolução Mensal */
+/* ===== LINHA SUPERIOR (Unidades + Evolução) ===== */
 .monitoramento-superior-row {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
   margin-top: 30px;
 }
+
+/* Unidades Ofensoras */
 .unidades-ofensoras-wrapper {
-  background: #1c2957;
-  border-radius: 14px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
-  padding: 18px 10px 8px 10px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-medium);
+  padding: 18px 16px;
   max-width: 600px;
   min-width: 310px;
   flex: 1 1 340px;
@@ -84,10 +150,11 @@
   flex-direction: column;
 }
 .unidades-ofensoras-titulo {
-  color: #ffe200;
+  color: var(--accent-color);
   text-align: center;
   font-size: 1.13rem;
-  margin-bottom: 10px;
+  font-weight: bold;
+  margin-bottom: 16px;
   letter-spacing: 0.5px;
 }
 .unidades-ofensoras-table-container {
@@ -98,290 +165,264 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #23376b;
-  border-radius: 8px;
+  background: var(--card-bg-alt);
+  border-radius: var(--border-radius-small);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-.unidades-ofensoras-table td {
-  padding: 8px 10px;
-  color: #ffffff;
-  text-align: center;
-  font-size: 0.97rem;
+  box-shadow: var(--shadow-light);
 }
 .unidades-ofensoras-table th {
   font-weight: bold;
-  color: #ffe200;
-  background: #1c2957;
+  color: var(--accent-color);
+  background: var(--card-bg);
+  padding: 12px 10px;
+  text-align: center;
 }
-.unidades-ofensoras-table .td-arrow {
-  width: 10px;
-  padding-left: 2px;
-  padding-right: 20px;
-  text-align: left;
+.unidades-ofensoras-table td {
+  padding: 10px;
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 0.95rem;
+  transition: background 0.2s ease;
+}
+.unidades-ofensoras-table td:first-child {
+  color: var(--danger-color);
+  font-weight: bold;
+  font-size: 1.2rem;
 }
 .unidades-ofensoras-table .td-centralizadora {
   text-align: left;
-  font-weight: 20;
-  color: #fff;
+  font-weight: 500;
+}
+.unidades-ofensoras-table .td-arrow {
+  width: 40px;
+  text-align: center;
 }
 .arrow-up {
-  color: #ff0000;
+  color: var(--danger-color);
   font-size: 1.1em;
-  vertical-align: middle;
   font-weight: bold;
 }
 .arrow-down {
-  color: #00ff0d;
+  color: var(--success-color);
   font-size: 1.1em;
-  vertical-align: middle;
   font-weight: bold;
 }
 .ofensora-hovered {
   background: #243e6b !important;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-/* NOVO: Evolução mensal por mês */
+/* Evolução Mensal */
 .evolucao-mensal-card {
-  background: #1c2957;
-  border-radius: 14px;
-  box-shadow: 0 2px 22px rgba(0, 0, 0, 0.1);
-  padding: 18px 14px 10px 16px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-medium);
+  padding: 18px 16px;
   min-width: 320px;
   max-width: 950px;
-  height: 400px; /* Define altura exata */
+  height: 400px;
   flex: 1 1 320px;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
 }
 .evolucao-mensal-titulo {
-  color: #ffe200;
+  color: var(--accent-color);
   text-align: center;
   font-size: 1.13rem;
-  margin-bottom: 6px;
-  letter-spacing: 0.5px;
   font-weight: bold;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
 }
 .evolucao-mensal-grafico-container {
   width: 100%;
   height: 280px;
-  background: #243e6b;
+  background: var(--card-bg-alt);
   border-radius: 10px;
   margin-bottom: 10px;
-  box-shadow: 0 1px 8px rgba(44, 44, 44, 0.06);
-  padding: 8px 0 0 0;
+  box-shadow: var(--shadow-light);
+  padding: 8px;
 }
 .evolucao-mensal-explicacao {
-  color: #c0c0c0;
-  font-size: 0.98rem;
-  padding: 3px 10px 0 10px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
   text-align: center;
+  margin-top: auto;
 }
 
+/* ===== GRÁFICOS E TABELAS ===== */
 .monitoramento-graficos-e-tabela {
   display: flex;
   flex-direction: row;
   gap: 40px;
   width: 100%;
   align-items: flex-start;
-  position: relative;
 }
-
 .monitoramento-graficos {
-  flex: 1 1 0;
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 40px;
-  min-width: 0;
+  gap: 32px;
 }
 
-/* Responsividade */
-@media (max-width: 1100px) {
-  .monitoramento-superior-row {
-    flex-direction: column;
-    gap: 24px;
-  }
-  .monitoramento-graficos-e-tabela {
-    flex-direction: column;
-    gap: 24px;
-  }
-  .evolucao-mensal-card {
-    position: static;
-    max-width: unset;
-    width: 100%;
-    margin-bottom: 24px;
-  }
+/* ===== SEÇÃO INFERIOR - CLIENTES DE RISCO ===== */
+.monitoramento-inferior {
+  margin-top: 56px;
+  transition: margin-top 0.3s ease;
 }
-@media (max-width: 900px) {
-  .monitoramento-page {
-    padding: 24px 3vw 24px 3vw;
-  }
-  .monitoramento-metricas {
-    gap: 14px;
-  }
-  .grafico-card {
-    padding: 16px 5px;
-  }
-}
-@media (max-width: 600px) {
-  .monitoramento-header h1 {
-    font-size: 1.3rem;
-  }
-  .metrica-card {
-    padding: 14px 12px;
-    min-width: 90px;
-  }
-}
-.unidades-ofensoras-table td:nth-child(1) {
-  color: #000000; /* vermelho */
-  font-weight: bold; /* negrito */
-  font-size: 30px;
-  text-align: center; /* alinhamento à direita */
-}
-
-/* Estilo individual de cada card de risco */
-.clientes-risco-card {
-  border-radius: 18px;
-  padding: 18px 25px;
-  width: 100%;
-  max-width: 200px; /* Largura máxima para cada card */
-  flex-shrink: 0; /* Impede que os cards diminuam além do limite */
-}
-
-/* Título interno das seções */
-.clientes-risco-titulo {
-  font-weight: bold;
-  font-size: 1.08rem;
-  margin-bottom: 2px;
-  margin-top: 10px;
-  color: #fff;
+.titulo-clientes-risco {
   text-align: center;
+  color: var(--accent-color);
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 20px 0;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.titulo-clientes-risco:hover {
+  color: var(--text-primary);
+  transform: scale(1.05);
+  text-shadow: 0 0 8px var(--accent-color);
 }
 
+/* LINHA DE RISCOS - container e comportamento (força alinhamento) */
 .clientes-risco-cards-linha {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between; /* Distribui os cards igualmente */
-  align-items: flex-start;
+  display: flex; /* já aplicado inline no JSX, mas reforçamos aqui */
   gap: 18px;
-  padding: 2px;
-  width: 100%;
-  box-sizing: border-box;
+  align-items: stretch; /* faz os cards terem a mesma altura */
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
+/* Cada card deve ser um flex-column para empurrar a tabela a ocupar o espaço restante */
 .clientes-risco-card {
-  background: #1c2957;
-  border-radius: 6px;
-  padding: 10px;
-  flex: 1 1 300px; /* Responsivo: mínimo 300px, cresce conforme espaço */
-  max-width: 100%;
-  box-shadow: 0 1px 22px rgba(0, 0, 0, 0.897);
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 30%; /* ocupa ~30% da linha, responsivo */
+  min-width: 260px;
   box-sizing: border-box;
 }
-
+/* Wrapper da tabela: é o elemento que ocupa o espaço flexível do card */
+.table-wrapper {
+  flex: 1 1 auto;
+  overflow: hidden; /* tabela interna terá scroll se precisar */
+}
+.clientes-risco-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
+}
 .clientes-risco-titulo {
   font-weight: bold;
   font-size: 1.2rem;
   margin-bottom: 16px;
-  color: #ffe200;
+  color: var(--accent-color);
   text-align: center;
 }
+/* Cores específicas por tipo de risco */
+.clientes-risco-titulo.risco3 {
+  color: var(--danger-color) !important;
+}
+.clientes-risco-titulo.risco2 {
+  color: var(--warning-color) !important;
+}
+.clientes-risco-titulo.risco1 {
+  color: var(--success-color) !important;
+}
 
+/* Tornar a tabela responsiva internamente e permitir scroll no tbody */
 .clientes-risco-tabela {
+  display: block; /* permite que thead e tbody possam rolar separadamente */
   width: 100%;
-  table-layout: fixed; /* Distribui colunas igualmente */
   border-collapse: collapse;
-  background: #23376b;
-  border-radius: 8px;
-  table-layout: auto; /* Permite que as colunas se ajustem ao conteúdo*/
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.925);
+  box-sizing: border-box;
 }
-
-.clientes-risco-tabela td,
-.clientes-risco-tabela th {
-  white-space: nowrap; /* Impede quebra de linha */
-  overflow: hidden; /* Esconde o excesso de texto */
-  text-overflow: ellipsis; /* Adiciona "..." ao final do texto cortado */
-  padding: 10px 1px; /* Espaço interno mais generoso */
-  font-size: 0.5rem; /* Tamanho de fonte legível */
+.clientes-risco-tabela th,
+.clientes-risco-tabela td {
+  padding: 12px 8px;
   text-align: center;
-  max-width: 180px; /* Limita largura para evitar distorções */
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .clientes-risco-tabela tr:last-child td {
   border-bottom: none;
 }
-
 .cliente-nome {
   font-weight: 500;
-  color: #fff;
+  text-align: left;
+}
+/* Cabeçalho mantém comportamento de tabela para alinhar colunas */
+.clientes-risco-tabela thead {
+  display: table;
+  width: 100%;
+  table-layout: fixed; /* fixa largura das colunas */
+}
+/* Truncate utility para limitar texto longo (com tooltip via title) */
+.truncate {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Limitar a largura da coluna "Nome do Cliente" visualmente (ajuste se quiser) */
+.clientes-risco-tabela td.cliente-nome,
+.clientes-risco-tabela th:first-child {
+  /* define largura relativa da primeira coluna para dar espaço às demais */
+  width: 40%;
+  max-width: 40%;
+  box-sizing: border-box;
+  padding-right: 8px;
+}
+/* Garantir que células numéricas pequenas não expandam demais */
+.clientes-risco-tabela td:not(.cliente-nome),
+.clientes-risco-tabela th:not(:first-child) {
+  width: 12%; /* aproximadamente, ajuste se necessário */
+  max-width: 12%;
+  text-align: center;
 }
 
-.risco3.clientes-risco-titulo {
-  color: #ff4242;
+/* ===== SCROLL PERSONALIZADO PARA ONBOARDING ===== */
+.onboarding-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 12px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.05);
 }
-.risco2.clientes-risco-titulo {
-  color: #ff9800;
+.onboarding-scroll::-webkit-scrollbar {
+  width: 8px;
 }
-.risco1.clientes-risco-titulo {
-  color: #00ff40;
+.onboarding-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
 }
-/* Cor dos dados da tabela */
-.clientes-risco-tabela td {
-  color: #000000; /* Branco para contraste com fundo escuro */
+.onboarding-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(255, 0, 0);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
-
-.titulo-clientes-risco {
-  text-align: center; /* Centraliza horizontalmente */
-  color: #ffe200; /* Cor vibrante (amarelo) */
-  font-size: 2rem; /* Tamanho de fonte maior */
-  font-weight: bold;
-  margin: 5px 0;
-  transition: all 0.3s ease; /* Suaviza a animação */
-  cursor: pointer; /* Indica interatividade */
+.onboarding-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 226, 0, 0.5);
 }
-
-/* Interatividade ao passar o mouse */
-.titulo-clientes-risco:hover {
-  color: #ffffff; /* Muda a cor ao passar o mouse */
-  transform: scale(1.05); /* Leve aumento de tamanho */
-  text-shadow: 0 0 8px #ffe200; /* Brilho sutil */
-}
-
-.clientes-risco-card:hover {
-  color: #000000; /* Muda a cor ao passar o mouse */
-  transform: scale(1.1); /* Leve aumento de tamanho */
-  text-shadow: 0 0 1px #ffffff71; /* Brilho sutil */
+/* Scrollbar Firefox */
+.onboarding-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 226, 0, 0.3) transparent;
 }
 
-/* Efeito ao passar o mouse */
-.metrica-card:hover {
-  transform: scale(1.05);
-  background-color: #23376b;
-  box-shadow: 0 4px 16px #ffe200;
-}
-
-.clientes-risco-titulo.risco3 {
-  color: #ffe200 !important; /* vermelho forte */
-}
+/* ===== LOADING STATE ===== */
 .monitoramento-loading {
   text-align: center;
-  color: #ffe200; /* Cor vibrante (amarelo) */
+  color: var(--accent-color);
   font-size: 1.5rem;
   font-weight: bold;
   margin: 40px 0;
   animation: pulsar 1.2s infinite ease-in-out;
   letter-spacing: 1px;
 }
-
-/* Animação pulsante */
 @keyframes pulsar {
-  0% {
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(1);
   }
@@ -389,60 +430,34 @@
     opacity: 1;
     transform: scale(1.05);
   }
-  100% {
-    opacity: 0.4;
-    transform: scale(1);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 1200px) {
+  .monitoramento-superior-row {
+    flex-direction: column;
+  }
+  .monitoramento-graficos-e-tabela {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .evolucao-mensal-card {
+    max-width: none;
+    width: 100%;
   }
 }
-/* Adicione estas regras ao seu Monitoramento.css (append/merge) */
-
-/* Faz com que o card de Clientes Omboarding tenha altura limitada e rolável */
-.onboarding-scroll {
-  max-height: 260px; /* ajuste conforme quiser (px ou vh) */
-  overflow-y: auto;
-  padding-right: 6px; /* espaço para scrollbar */
-  margin-top: 12px;
-  /* opcional: background para visual separar */
-  /* background: rgba(255,255,255,0.02); */
-}
-
-/* Mantém a tabela com largura total dentro do wrapper rolável */
-.onboarding-scroll .clientes-risco-tabela {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* Scrollbar - estilização leve para navegadores baseados em WebKit */
-.onboarding-scroll::-webkit-scrollbar {
-  width: 10px;
-}
-.onboarding-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.onboarding-scroll::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 145, 0, 0.25);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-.onboarding-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 145, 0, 0.42);
-}
-
-/* Para Firefox */
-.onboarding-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 145, 0, 0.25) transparent;
-}
-
-/* Aumenta o espaçamento antes da seção inferior, "descendo" os cards de risco */
-.monitoramento-inferior {
-  margin-top: 56px; /* ajuste este valor para "descer" mais ou menos os cards */
-  transition: margin-top 0.22s ease;
-}
-
-/* Se quiser um espaçamento ainda maior em telas pequenas, use media queries */
 @media (max-width: 900px) {
+  .monitoramento-page {
+    padding: 24px 3vw;
+  }
+  .monitoramento-metricas {
+    gap: 16px;
+    justify-content: center;
+  }
+  .metrica-card {
+    min-width: 100px;
+    padding: 16px 20px;
+  }
   .onboarding-scroll {
     max-height: 220px;
   }
@@ -450,16 +465,66 @@
     margin-top: 40px;
   }
 }
-
-/* Opcional: se quiser limitar a altura do cartão inteiro (título + tabela),
-   adapte a regra .clientes-risco-card.risco3 */
-.clientes-risco-card.risco3 {
-  /* max-height: 320px; */
-  /* overflow: hidden; */ /* mantendo o scroll na div interna (.onboarding-scroll) */
+@media (max-width: 600px) {
+  .monitoramento-header h1 {
+    font-size: 1.8rem;
+  }
+  .titulo-clientes-risco {
+    font-size: 1.5rem;
+  }
+  .metrica-card {
+    padding: 12px 16px;
+    min-width: 80px;
+  }
+  .metrica-card span {
+    font-size: 1.8rem;
+  }
+}
+@media (max-width: 480px) {
+  .monitoramento-page {
+    padding: 16px 2vw;
+  }
+  .monitoramento-metricas {
+    flex-direction: column;
+    align-items: center;
+  }
+  .metrica-card {
+    width: 100%;
+    max-width: 200px;
+  }
 }
 
-/* Se preferir visível, adicione uma pequena sombra para destacar o card rolável */
-.onboarding-scroll {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  border-radius: 6px;
+/* ===== UTILITÁRIOS ===== */
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-right {
+  text-align: right;
+}
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-1 {
+  margin-bottom: 8px;
+}
+.mb-2 {
+  margin-bottom: 16px;
+}
+.mb-3 {
+  margin-bottom: 24px;
+}
+.mt-0 {
+  margin-top: 0;
+}
+.mt-1 {
+  margin-top: 8px;
+}
+.mt-2 {
+  margin-top: 16px;
+}
+.mt-3 {
+  margin-top: 24px;
 }
