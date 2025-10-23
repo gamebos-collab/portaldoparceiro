@@ -1,0 +1,241 @@
+:root {
+  --bg: #071025;
+  --card-bg: #0b1220;
+  --muted: #9aa4b2;
+  --text: #e6eef8;
+  --accent: #6c5ce7;
+  --danger: #ff6b6b;
+  --success: #51cf66;
+  --neutral: #c0c7d6;
+  --card-radius: 10px;
+}
+
+.home-container {
+  padding: 18px 18px 36px 18px;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(180deg, #071025 0%, #081728 100%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.top-cards {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+.stat-card {
+  flex: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  padding: 14px;
+  border-radius: var(--card-radius);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  min-width: 0;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+  will-change: transform;
+}
+.stat-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 14px 36px rgba(102, 89, 232, 0.22);
+  filter: brightness(1.03);
+}
+.stat-title {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 20px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.middle-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.ranking-column {
+  flex: 1.2;
+  min-width: 0;
+}
+.chart-column {
+  flex: 1;
+  max-width: 680px;
+}
+
+.ranking-wrapper {
+  background: var(--card-bg);
+  padding: 14px;
+  border-radius: var(--card-radius);
+}
+.ranking-wrapper h3 {
+  margin: 0 0 8px 0;
+}
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.ranking-table thead th {
+  text-align: left;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.ranking-table tbody td {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.ranking-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.partner-cell .partner-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.movement-icon {
+  width: 16px;
+  height: 16px;
+}
+.movement-icon.up {
+  color: var(--danger);
+}
+.movement-icon.down {
+  color: var(--success);
+}
+.movement-icon.neutral {
+  color: var(--neutral);
+}
+
+.chart-card {
+  background: var(--card-bg);
+  padding: 12px;
+  border-radius: var(--card-radius);
+  margin-bottom: 12px;
+}
+.chart-card svg .recharts-rect {
+  transition: transform 120ms ease, filter 120ms ease;
+  transform-origin: center;
+}
+.chart-card svg .recharts-rect:hover {
+  transform: translateY(-3px) scale(1.03);
+  filter: drop-shadow(0 8px 18px rgba(136, 132, 216, 0.28));
+  cursor: pointer;
+}
+
+.month-popup {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.onboarding-card {
+  margin-top: 12px;
+  background: var(--card-bg);
+  padding: 12px;
+  border-radius: var(--card-radius);
+}
+.onboarding-card h3 {
+  margin: 0 0 10px 0;
+}
+.onboarding-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.onboarding-table thead th {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.onboarding-table tbody td {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.onboarding-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.lower-section {
+  margin-top: 16px;
+}
+.three-risks {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.risk-col {
+  flex: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(255, 255, 255, 0.005)
+  );
+  padding: 10px;
+  border-radius: var(--card-radius);
+}
+.risk-col h4 {
+  margin: 0 0 10px 0;
+}
+.risk-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.risk-table thead th {
+  padding: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.risk-table tbody td {
+  padding: 6px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.risk-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+header,
+.navbar,
+.top-navbar {
+  height: 56px;
+  line-height: 56px;
+  padding: 0 16px;
+}
+
+@media (max-width: 1000px) {
+  .top-cards {
+    flex-wrap: wrap;
+  }
+  .middle-row {
+    flex-direction: column;
+  }
+  .chart-column {
+    max-width: 100%;
+  }
+  .three-risks {
+    flex-direction: column;
+  }
+}
