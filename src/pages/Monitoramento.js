@@ -13,18 +13,9 @@ import {
 import { FiArrowUpRight, FiArrowDownRight, FiMinus } from "react-icons/fi";
 import "./Monitoramento.css";
 
-/*
-  Ajuste solicitado:
-  - Forçar que a coluna "Centralizadora" exibida no Ranking seja determinada
-    pelo mapa oficial de centralizadoras <-> parceiros que você enviou.
-    Ou seja: para cada parceiro encontrado, se existir no CENTRALIZADORA_MAP,
-    exibe a centralizadora correspondente (chave do mapa). Se não existir no
-    mapa, usa o valor da planilha como fallback.
-  - Mantive a regra de ignorar MTZ permanentemente (FORCIBLE_IGNORE).
-  - Mantive heurísticas robustas de detecção de colunas/parceiros/faixa.
-  - Normalização (remoção de acentos / espaços / uppercase) para matching consistente.
-*/
-
+/* -------------------------
+   Centralizadora / parceiros
+   ------------------------- */
 const CENTRALIZADORA_MAP = {
   CXS: ["ERE", "PFU", "VAC", "VER", "LGV"],
   POA: ["PEL", "NHA", "CMQ", "OSO", "PO2", "RIG", "LAJ", "CBN", "CAI", "GRA"],
@@ -68,7 +59,7 @@ const CENTRALIZADORA_MAP = {
   SOR: ["ITP"],
   RIP: ["FCA", "PTF", "OCA", "PSS"],
   SUM: [],
-  SÃO: [
+  SAO: [
     "REG",
     "SAN",
     "SJK",
@@ -136,10 +127,12 @@ const CENTRALIZADORA_MAP = {
   ],
 };
 
-// Códigos que sempre devem ser ignorados (normalize)
+// Always-ignored codes (normalized) — usado apenas para ranking/cards
 const FORCIBLE_IGNORE = ["MTZ"];
 
-// normalize string (remove acentos, espaços e uppercase)
+/* -------------------------
+   Utilities
+   ------------------------- */
 function normalizeCode(s) {
   if (s === undefined || s === null) return "";
   try {
@@ -153,29 +146,37 @@ function normalizeCode(s) {
   }
 }
 
-// flattened normalized partner codes (from the provided map)
 const PARTNER_CODES_NORM = new Set(
   Object.values(CENTRALIZADORA_MAP)
     .flat()
     .map((c) => normalizeCode(c))
-    .filter(Boolean)
 );
 
-// normalized central keys
 const CENTRAL_KEYS_NORM = new Set(
   Object.keys(CENTRALIZADORA_MAP).map((k) => normalizeCode(k))
 );
 
-// add forcible ignore into central keys so they're treated as central when detected
 FORCIBLE_IGNORE.forEach((c) => CENTRAL_KEYS_NORM.add(normalizeCode(c)));
 
 const IGNORE_SET = new Set(FORCIBLE_IGNORE.map((c) => normalizeCode(c)));
+
+const PARTNER_TO_CENTRAL = {};
+Object.keys(CENTRALIZADORA_MAP).forEach((central) => {
+  const partners = CENTRALIZADORA_MAP[central] || [];
+  partners.forEach((p) => {
+    const pn = normalizeCode(p);
+    if (pn) PARTNER_TO_CENTRAL[pn] = central;
+  });
+});
 
 function sheetToJson(sheet) {
   if (!sheet) return [];
   return XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
 }
 
+/* -------------------------
+   StatCard
+   ------------------------- */
 function StatCard({ title, value }) {
   return (
     <div className="stat-card">
@@ -185,27 +186,58 @@ function StatCard({ title, value }) {
   );
 }
 
+/* -------------------------
+   Modified RankingTable (somente exibição)
+   - buckets: "0 a 5", "6 a 10", "11 a 15", "> 15"
+   - limita para 12 linhas
+   ------------------------- */
 function RankingTable({ rankingData, previousRanks }) {
-  const sorted = [...rankingData].sort((a, b) => b.total - a.total);
-  const top10 = sorted.slice(0, 10);
+  const toBucketValue = (r, key) => {
+    if (!r) return 0;
+    if (r.counts && Object.prototype.hasOwnProperty.call(r.counts, key)) {
+      return r.counts[key] ?? 0;
+    }
+    const legacyMap = {
+      "0 a 5": "Até 5 Dias",
+      "6 a 10": "Até 10 Dias",
+      "11 a 15": "Até 15 Dias",
+      "> 15": "Acima 15 Dias",
+    };
+    if (
+      r.faixaCounts &&
+      legacyMap[key] &&
+      Object.prototype.hasOwnProperty.call(r.faixaCounts, legacyMap[key])
+    ) {
+      return r.faixaCounts[legacyMap[key]] ?? 0;
+    }
+    return 0;
+  };
+
+  const sorted = [...(rankingData || [])].sort(
+    (a, b) => (b.total || 0) - (a.total || 0)
+  );
+  const top = sorted.slice(0, 20); // apenas 20 linhas exibidas
 
   return (
     <div className="ranking-wrapper">
-      <h3>Ranking de Parceiros (pior no topo)</h3>
+      <h3 style={{ textAlign: "center" }}>
+        <i>PARCEIROS MAIS OFENSORES</i>
+      </h3>
+
       <table className="ranking-table">
         <thead>
           <tr>
             <th>Parceiro</th>
             <th>Centralizadora</th>
-            <th>Até 5 Dias</th>
-            <th>Até 10 Dias</th>
-            <th>Até 15 Dias</th>
-            <th>15 +</th>
+            <th>0 a 5</th>
+            <th>6 a 10</th>
+            <th>11 a 15</th>
+            <th>&gt; 15</th>
             <th>Total Geral</th>
           </tr>
         </thead>
         <tbody>
-          {top10.map((r, idx) => {
+          {top.map((r, idx) => {
             const prevPos = previousRanks?.[r.parceiro];
             const currPos = idx + 1;
             let Icon = FiMinus;
@@ -219,6 +251,29 @@ function RankingTable({ rankingData, previousRanks }) {
                 iconClass = "down";
               }
             }
+
+            const v0 = toBucketValue(r, "0 a 5");
+            const v1 = toBucketValue(r, "6 a 10");
+            const v2 = toBucketValue(r, "11 a 15");
+            const v3 = toBucketValue(r, "> 15");
+
+            const computedTotal =
+              (Number(v0) || 0) +
+              (Number(v1) || 0) +
+              (Number(v2) || 0) +
+              (Number(v3) || 0);
+            const total =
+              r.total !== undefined && r.total !== null
+                ? r.total
+                : computedTotal;
+
+            let central = r.centralizadora || "";
+            if (!central && r.parceiro) {
+              const pn = normalizeCode(r.parceiro);
+              if (PARTNER_TO_CENTRAL[pn]) central = PARTNER_TO_CENTRAL[pn];
+            }
+            if (central && IGNORE_SET.has(normalizeCode(central))) central = "";
+
             return (
               <tr key={r.parceiro || idx}>
                 <td className="partner-cell">
@@ -227,25 +282,24 @@ function RankingTable({ rankingData, previousRanks }) {
                     <span>{r.parceiro}</span>
                   </div>
                 </td>
-                <td>{r.centralizadora}</td>
-                <td>{r.faixaCounts["Até 5 Dias"] ?? 0}</td>
-                <td>{r.faixaCounts["Até 10 Dias"] ?? 0}</td>
-                <td>{r.faixaCounts["Até 15 Dias"] ?? 0}</td>
-                <td>{r.faixaCounts["Acima 15 Dias"] ?? 0}</td>
-                <td>{r.total}</td>
+                <td>{central}</td>
+                <td>{v0}</td>
+                <td>{v1}</td>
+                <td>{v2}</td>
+                <td>{v3}</td>
+                <td>{total}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <div className="ranking-legend">
-        Observação: quanto maior o Total Geral mais no topo (pior). Movimentação
-        considera Total Geral.
-      </div>
     </div>
   );
 }
 
+/* -------------------------
+   Main component
+   ------------------------- */
 export default function Monitoramento() {
   const [wbData, setWbData] = useState(null);
   const [cards, setCards] = useState({
@@ -278,29 +332,11 @@ export default function Monitoramento() {
         try {
           const fetchUrl = url + "?_=" + Date.now();
           const res = await fetch(fetchUrl, { cache: "no-store" });
-          console.log(
-            "Fetch",
-            url,
-            "=>",
-            res.status,
-            res.headers.get("content-type")
-          );
-          if (!res.ok) {
-            console.warn(`Resposta ${res.status} ao buscar ${url}`);
-            continue;
-          }
+          console.log("Fetch", url, "=>", res.status);
+          if (!res.ok) continue;
           const ct = (res.headers.get("content-type") || "").toLowerCase();
-          if (
-            ct.includes("text/html") ||
-            ct.includes("application/xhtml+xml")
-          ) {
-            const html = await res.text();
-            console.error(
-              `A resposta para ${url} é HTML (ct: ${ct}). Trecho:\n`,
-              html.slice(0, 800)
-            );
+          if (ct.includes("text/html") || ct.includes("application/xhtml+xml"))
             continue;
-          }
           const ab = await res.arrayBuffer();
           try {
             const wb = XLSX.read(ab, { type: "array" });
@@ -308,25 +344,14 @@ export default function Monitoramento() {
             setWbData(wb);
             return;
           } catch (err) {
-            console.error("Falha ao parsear como XLSX:", err);
-            try {
-              const snippet = new TextDecoder().decode(
-                new Uint8Array(ab.slice(0, 800))
-              );
-              console.log(
-                "Trecho do conteúdo (bytes->texto):",
-                snippet.slice(0, 800)
-              );
-            } catch (e) {}
+            console.warn("Falha parsear xlsx:", err);
             continue;
           }
         } catch (err) {
           console.warn("Erro fetch", url, err);
         }
       }
-      console.error(
-        "Não foi possível carregar kpiparceiro (.xlsm/.xlsx) automaticamente. Verifique public/ e nome do arquivo."
-      );
+      console.error("Não foi possível carregar kpiparceiro (.xlsm/.xlsx).");
     }
     loadWorkbook();
   }, []);
@@ -338,11 +363,9 @@ export default function Monitoramento() {
     // ---------- CARDS ----------
     try {
       const names = wbData.SheetNames || [];
-      console.log("Sheets disponíveis:", names);
       const targetName =
         names.find((n) => n && n.trim().toLowerCase() === "kpiparceiro") ||
         names[0];
-      console.log("Usando sheet para cards:", targetName);
       const s = wbData.Sheets[targetName];
 
       function readCellValue(sheet, addr) {
@@ -382,7 +405,6 @@ export default function Monitoramento() {
         return null;
       }
 
-      // Células dos cards (ajuste se necessário)
       const cellsMap = {
         totalHoje: "BJ11",
         abertosHoje: "BK11",
@@ -396,8 +418,6 @@ export default function Monitoramento() {
       for (const key of Object.keys(cellsMap)) {
         const addr = cellsMap[key];
         const raw = readCellValue(s, addr);
-
-        // IGNORAR MTZ em cards
         const rawNorm = normalizeCode(raw);
         if (IGNORE_SET.has(rawNorm)) {
           newCards[key] = null;
@@ -429,21 +449,23 @@ export default function Monitoramento() {
       console.error("Erro ao montar cards:", err);
     }
 
-    // ---------- RANKING (aba "dados") ----------
+    // ---------- RANKING (aba "Dados") ----------
     try {
-      const sheetNameCandidate = wbData.SheetNames.find((n) =>
-        /dados/i.test(n)
-      );
+      // find sheet named "dados" (case-insensitive)
+      const sheetNameCandidate =
+        wbData.SheetNames.find((n) => /^dados$/i.test(n)) ||
+        wbData.SheetNames.find((n) => /dados/i.test(n));
       const sheet = wbData.Sheets[sheetNameCandidate || wbData.SheetNames[0]];
       const rows = sheetToJson(sheet || {});
       if (!rows || rows.length === 0) {
         console.warn(
-          "Aba 'dados' vazia ou não encontrada; não será possível montar ranking."
+          "Aba 'Dados' vazia ou não encontrada; não será possível montar ranking."
         );
         return;
       }
 
-      // encontrar header
+      // The user indicated "Resp" header starts at line 10 (1-based), i.e., index 9.
+      // We'll search for a header row containing 'resp' in the first 20 rows, else default to row 9.
       let headerIndex = -1;
       for (let i = 0; i < Math.min(20, rows.length); i++) {
         const row = rows[i] || [];
@@ -457,51 +479,77 @@ export default function Monitoramento() {
           break;
         }
       }
-      if (headerIndex === -1) headerIndex = rows.length > 8 ? 8 : 0;
+      if (headerIndex === -1) {
+        // default to row 10 => index 9
+        headerIndex = rows.length > 9 ? 9 : 0;
+      }
+
       const headerRow = rows[headerIndex] || [];
       console.log(
-        "Header row index detectada para 'dados':",
+        "Header row index detectada para 'Dados':",
         headerIndex,
-        "headerRow:",
         headerRow.slice(0, 30)
       );
 
-      const findColByHeader = (keywords) => {
+      const findColByHeaderNames = (names) => {
         const low = headerRow.map((h) => String(h || "").toLowerCase());
-        for (const k of keywords) {
-          const idx = low.findIndex((x) => x.includes(k));
+        for (const n of names) {
+          const idx = low.findIndex((x) => x.includes(n));
           if (idx !== -1) return idx;
         }
         return -1;
       };
 
-      let parceiroCol = findColByHeader([
+      // Identify columns
+      let parceiroCol = findColByHeaderNames([
         "resp",
         "respons",
         "parceiro",
         "parceiros",
       ]);
-      let centralizadoraCol = findColByHeader([
+      let centralizadoraCol = findColByHeaderNames([
         "centraliz",
         "centralizada",
         "centralizadora",
+        "central",
       ]);
-      let faixaCol = findColByHeader([
-        "faixa",
-        "dias",
-        "prazo",
+      let faixa0Col = findColByHeaderNames([
+        "0 a 5",
+        "0a5",
         "até 5",
+        "ate 5",
+        "0-5",
+      ]);
+      let faixa1Col = findColByHeaderNames([
+        "6 a 10",
+        "6a10",
+        "6-10",
         "até 10",
+        "ate 10",
+      ]);
+      let faixa2Col = findColByHeaderNames([
+        "11 a 15",
+        "11a15",
+        "11-15",
         "até 15",
+        "ate 15",
+      ]);
+      let faixa3Col = findColByHeaderNames([
+        "> 15",
+        ">15",
         "acima 15",
+        "maior 15",
+        "acima de 15",
       ]);
 
-      // detect partner column by content (score penaliza centrais)
-      const detectPartnerColByContent = () => {
+      // Fallbacks: sometimes the faixa columns are grouped in a single "faixa" column or different labels.
+      // We'll also attempt to find any column headers that look like numeric ranges if above failed.
+      if (parceiroCol === -1) {
+        // try to detect by content (partners are known codes)
         const maxCols = Math.max(30, headerRow.length || 30);
         const rowsToScan = Math.min(100, rows.length - (headerIndex + 1));
-        let bestCol = -1;
-        let bestRatio = 0;
+        let bestCol = -1,
+          bestRatio = 0;
         for (let c = 0; c < maxCols; c++) {
           let samples = 0,
             partnerMatches = 0,
@@ -526,41 +574,12 @@ export default function Monitoramento() {
             }
           }
         }
-        if (bestRatio > 0.05) return bestCol;
-        return -1;
-      };
-
-      if (parceiroCol === -1) {
-        const detected = detectPartnerColByContent();
-        if (detected !== -1) parceiroCol = detected;
-      } else {
-        // validate
-        let samples = 0,
-          partnerMatches = 0,
-          centralMatches = 0;
-        for (
-          let r = headerIndex + 1;
-          r < Math.min(rows.length, headerIndex + 1 + 40);
-          r++
-        ) {
-          const cellRaw = String((rows[r] || [])[parceiroCol] ?? "");
-          const cell = normalizeCode(cellRaw);
-          if (!cell) continue;
-          samples++;
-          if (PARTNER_CODES_NORM.has(cell)) partnerMatches++;
-          if (CENTRAL_KEYS_NORM.has(cell)) centralMatches++;
-        }
-        const score =
-          samples > 0 ? (partnerMatches - 0.6 * centralMatches) / samples : 0;
-        if (score <= 0.05) {
-          const detected = detectPartnerColByContent();
-          if (detected !== -1) parceiroCol = detected;
-        }
+        if (bestRatio > 0.05) parceiroCol = bestCol;
       }
 
-      // detect centralizadora col if missing
+      // If central not found, we'll still allow it to be empty and infer later from partner
       if (centralizadoraCol === -1) {
-        const centralKeys = Array.from(CENTRAL_KEYS_NORM);
+        // try a heuristic: any column containing many central keys
         const maxCols = Math.max(20, headerRow.length || 20);
         for (let c = 0; c < maxCols; c++) {
           let samples = 0,
@@ -573,7 +592,7 @@ export default function Monitoramento() {
             const cell = normalizeCode((rows[r] || [])[c] ?? "");
             if (!cell) continue;
             samples++;
-            if (centralKeys.includes(cell)) matches++;
+            if (CENTRAL_KEYS_NORM.has(cell)) matches++;
           }
           if (samples > 0 && matches / samples >= 0.35) {
             centralizadoraCol = c;
@@ -582,68 +601,116 @@ export default function Monitoramento() {
         }
       }
 
-      // avoid same column
-      if (parceiroCol !== -1 && centralizadoraCol === parceiroCol) {
-        console.warn(
-          "ParceiroCol e CentralizadoraCol detectados iguais. CentralizadoraCol será ignorada para evitar sobreposição."
-        );
-        centralizadoraCol = -1;
+      // If faixa columns missing, attempt to detect columns that contain small integers (0..big) and maybe column headers nearby saying "faixa" or "dias".
+      const tryDetectFaixaByNearby = (aroundNames, preferOffset) => {
+        // look for header that mentions 'faixa' or 'dias', then try nearby columns
+        for (let i = 0; i < headerRow.length; i++) {
+          const h = String(headerRow[i] || "").toLowerCase();
+          if (/faixa|dias|prazo|ate|até/.test(h)) {
+            // try offsets
+            for (let off = 1; off <= 4; off++) {
+              const idx = i + off;
+              if (idx < headerRow.length) {
+                const label = String(headerRow[idx] || "").toLowerCase();
+                if (label && (/\d/.test(label) || /[0-9]/.test(label)))
+                  return idx;
+              }
+            }
+          }
+        }
+        // general scan: find a column where most values are small integers (0..100)
+        const maxCols = Math.max(headerRow.length, 20);
+        for (let c = 0; c < maxCols; c++) {
+          let samples = 0,
+            smallInts = 0;
+          for (
+            let r = headerIndex + 1;
+            r < Math.min(rows.length, headerIndex + 1 + 200);
+            r++
+          ) {
+            const val = (rows[r] || [])[c];
+            if (val === undefined || val === null || String(val).trim() === "")
+              continue;
+            samples++;
+            const s = String(val).replace(/\s/g, "").replace(",", ".");
+            const m = s.match(/^-?\d+/);
+            if (m) {
+              const n = Number(m[0]);
+              if (!Number.isNaN(n) && Math.abs(n) <= 100) smallInts++;
+            }
+          }
+          if (samples > 0 && smallInts / samples > 0.6) {
+            return c;
+          }
+        }
+        return -1;
+      };
+
+      if (
+        faixa0Col === -1 ||
+        faixa1Col === -1 ||
+        faixa2Col === -1 ||
+        faixa3Col === -1
+      ) {
+        // try to find a starting column that contains faixa data and then assume 4 consecutive columns
+        const candidateStart = tryDetectFaixaByNearby();
+        if (candidateStart !== -1) {
+          if (faixa0Col === -1) faixa0Col = candidateStart;
+          if (faixa1Col === -1) faixa1Col = candidateStart + 1;
+          if (faixa2Col === -1) faixa2Col = candidateStart + 2;
+          if (faixa3Col === -1) faixa3Col = candidateStart + 3;
+        }
       }
 
-      if (parceiroCol === -1) parceiroCol = 11; // fallback L
-      if (faixaCol === -1) faixaCol = 5;
+      // Last resort fallbacks: reasonable defaults
+      if (parceiroCol === -1) parceiroCol = 11; // as before
+      if (faixa0Col === -1) faixa0Col = 5;
+      if (faixa1Col === -1) faixa1Col = faixa0Col + 1;
+      if (faixa2Col === -1) faixa2Col = faixa0Col + 2;
+      if (faixa3Col === -1) faixa3Col = faixa0Col + 3;
 
       console.log(
-        "Detecção colunas (parceiroCol, centralizadoraCol, faixaCol):",
+        "Detecção colunas (parceiroCol, centralizadoraCol, faixa0..3):",
         parceiroCol,
         centralizadoraCol,
-        faixaCol
+        faixa0Col,
+        faixa1Col,
+        faixa2Col,
+        faixa3Col
       );
       console.log(
         "Amostra rows (headerIndex..headerIndex+4):",
         rows.slice(headerIndex, headerIndex + 5).map((r) => r.slice(0, 30))
       );
 
-      // categorize faixa
-      function categorizeFaixa(val) {
-        if (val === null || val === undefined) return "Acima 15 Dias";
-        const s = String(val).trim().toLowerCase();
-        if (s.includes("até 5")) return "Até 5 Dias";
-        if (s.includes("até 10")) return "Até 10 Dias";
-        if (s.includes("até 15")) return "Até 15 Dias";
-        if (s.includes("acima 15") || s.includes("mais"))
-          return "Acima 15 Dias";
-        const m = s.match(/(\d{1,3})/);
+      // helper to parse numeric counts (tolerant)
+      const parseCount = (v) => {
+        if (v === undefined || v === null) return 0;
+        if (typeof v === "number") return Math.max(0, Math.trunc(v));
+        const s = String(v).trim();
+        if (s === "") return 0;
+        // try to extract first integer
+        const m = s.replace(/\./g, "").replace(",", ".").match(/-?\d+/);
         if (m) {
-          const n = parseInt(m[1], 10);
-          if (!Number.isNaN(n)) {
-            if (n <= 5) return "Até 5 Dias";
-            if (n <= 10) return "Até 10 Dias";
-            if (n <= 15) return "Até 15 Dias";
-            return "Acima 15 Dias";
-          }
+          const n = Number(m[0]);
+          return Number.isNaN(n) ? 0 : Math.max(0, Math.trunc(n));
         }
-        return "Acima 15 Dias";
-      }
+        return 0;
+      };
 
-      // infer centralizadora from partner using the authoritative map
-      function inferCentralizadoraFromPartner(part) {
-        if (!part) return "";
-        const code = normalizeCode(part);
-        for (const key of Object.keys(CENTRALIZADORA_MAP)) {
-          const arr = CENTRALIZADORA_MAP[key].map((c) => normalizeCode(c));
-          if (arr.includes(code)) return key;
-        }
-        return "";
-      }
+      // check hidden rows via sheet['!rows'] (if available)
+      const sheetRowsInfo = sheet && sheet["!rows"] ? sheet["!rows"] : null;
 
-      // build counts, enforcing authoritative mapping for centralizadora when available
+      // build counts map: keys are partner display name (raw string from sheet)
       const map = {};
       for (let r = headerIndex + 1; r < rows.length; r++) {
+        // skip hidden rows if info present. Note: sheet['!rows'] is 0-based, aligns with rows[] indexes
+        if (sheetRowsInfo && sheetRowsInfo[r] && sheetRowsInfo[r].hidden)
+          continue;
+
         const row = rows[r];
         if (!row || row.length === 0) continue;
 
-        // read parceiro
         const rawParceiro = row[parceiroCol];
         const parceiroRawStr =
           rawParceiro !== undefined && rawParceiro !== null
@@ -652,30 +719,28 @@ export default function Monitoramento() {
         if (!parceiroRawStr) continue;
         const parceiroNorm = normalizeCode(parceiroRawStr);
 
-        // ignore forcible codes (e.g., MTZ)
-        if (IGNORE_SET.has(parceiroNorm)) continue;
+        // accept only known partners (exact list provided)
+        if (!PARTNER_CODES_NORM.has(parceiroNorm)) continue;
 
-        // determine centralizadora by authoritative map FIRST
-        let centralFromMap = inferCentralizadoraFromPartner(parceiroRawStr); // returns key or ""
-        let centralizadora =
-          centralFromMap ||
-          (centralizadoraCol !== -1
-            ? String(row[centralizadoraCol] ?? "").trim()
-            : "");
-        // If sheet centralizadora is in IGNORE_SET, drop it
-        if (
-          normalizeCode(centralizadora) &&
-          IGNORE_SET.has(normalizeCode(centralizadora))
-        )
+        // ignore forcible codes (e.g., MTZ) and any central keys (safety)
+        if (IGNORE_SET.has(parceiroNorm) || CENTRAL_KEYS_NORM.has(parceiroNorm))
+          continue;
+
+        // centralizadora prefer authoritative mapping by partner -> central; else from sheet column if present
+        let centralFromMap = PARTNER_TO_CENTRAL[parceiroNorm] || "";
+        let centralizadora = centralFromMap;
+        if (!centralizadora && centralizadoraCol !== -1) {
+          centralizadora = String(row[centralizadoraCol] ?? "").trim();
+        }
+        if (centralizadora && IGNORE_SET.has(normalizeCode(centralizadora)))
           centralizadora = "";
 
-        // if centralFromMap exists but is in FORCIBLE_IGNORE (unlikely), avoid showing it
-        if (centralFromMap && IGNORE_SET.has(normalizeCode(centralFromMap)))
-          centralizadora = "";
-
-        // faixa
-        const faixaRaw = row[faixaCol] ?? "";
-        const faixaCat = categorizeFaixa(faixaRaw);
+        // read faixa counts from the detected columns (0 a 5, 6 a 10, 11 a 15, > 15)
+        const v0 = parseCount(row[faixa0Col]);
+        const v1 = parseCount(row[faixa1Col]);
+        const v2 = parseCount(row[faixa2Col]);
+        const v3 = parseCount(row[faixa3Col]);
+        const total = v0 + v1 + v2 + v3;
 
         const parceiroDisplay = String(parceiroRawStr).trim();
 
@@ -683,21 +748,28 @@ export default function Monitoramento() {
           map[parceiroDisplay] = {
             parceiro: parceiroDisplay,
             centralizadora: centralizadora || "",
-            faixaCounts: {
-              "Até 5 Dias": 0,
-              "Até 10 Dias": 0,
-              "Até 15 Dias": 0,
-              "Acima 15 Dias": 0,
+            counts: {
+              "0 a 5": 0,
+              "6 a 10": 0,
+              "11 a 15": 0,
+              "> 15": 0,
             },
             total: 0,
           };
         }
 
-        map[parceiroDisplay].faixaCounts[faixaCat] =
-          (map[parceiroDisplay].faixaCounts[faixaCat] || 0) + 1;
-        map[parceiroDisplay].total = (map[parceiroDisplay].total || 0) + 1;
+        // aggregate values (in case multiple rows for the same partner)
+        map[parceiroDisplay].counts["0 a 5"] =
+          (map[parceiroDisplay].counts["0 a 5"] || 0) + v0;
+        map[parceiroDisplay].counts["6 a 10"] =
+          (map[parceiroDisplay].counts["6 a 10"] || 0) + v1;
+        map[parceiroDisplay].counts["11 a 15"] =
+          (map[parceiroDisplay].counts["11 a 15"] || 0) + v2;
+        map[parceiroDisplay].counts["> 15"] =
+          (map[parceiroDisplay].counts["> 15"] || 0) + v3;
+        map[parceiroDisplay].total = (map[parceiroDisplay].total || 0) + total;
 
-        // ensure centralizadora is filled (prefer map value)
+        // if we didn't have a centralizadora yet, try to fill with detected one
         if (
           (!map[parceiroDisplay].centralizadora ||
             map[parceiroDisplay].centralizadora === "") &&
@@ -708,6 +780,17 @@ export default function Monitoramento() {
       }
 
       const rankingArray = Object.values(map);
+
+      // final safety: ensure numeric totals consistent with counts
+      rankingArray.forEach((r) => {
+        const computed =
+          (Number(r.counts["0 a 5"]) || 0) +
+          (Number(r.counts["6 a 10"]) || 0) +
+          (Number(r.counts["11 a 15"]) || 0) +
+          (Number(r.counts["> 15"]) || 0);
+        if (!r.total || r.total !== computed) r.total = computed;
+      });
+
       console.log(
         "Ranking construído (amostra 30):",
         rankingArray.slice(0, 30)
@@ -717,24 +800,23 @@ export default function Monitoramento() {
       console.error("Erro ao montar ranking:", err);
     }
 
-    // ---------- GRÁFICO: (manualmente preenchido por enquanto) ----------
-    const manualChart = [
-      { month: "Jan", value: 10, info: "Detalhes Jan" },
-      { month: "Fev", value: 8, info: "Detalhes Fev" },
-      { month: "Mar", value: 12, info: "Detalhes Mar" },
-      { month: "Abr", value: 6, info: "Detalhes Abr" },
-      { month: "Mai", value: 9, info: "Detalhes Mai" },
-      { month: "Jun", value: 7, info: "Detalhes Jun" },
-      { month: "Jul", value: 14, info: "Detalhes Jul" },
-      { month: "Ago", value: 11, info: "Detalhes Ago" },
-      { month: "Set", value: 5, info: "Detalhes Set" },
-      { month: "Out", value: 4, info: "Detalhes Out" },
-      { month: "Nov", value: 3, info: "Detalhes Nov" },
-      { month: "Dez", value: 1, info: "Detalhes Dez" },
-    ];
-    setChartData(manualChart);
+    // ---------- GRÁFICO: (placeholder) ----------
+    setChartData([
+      { month: "Jan", value: 10, info: "Detalhes Janeiro" },
+      { month: "Fev", value: 8, info: "Detalhes Fevereiro" },
+      { month: "Mar", value: 12, info: "Detalhes Março" },
+      { month: "Abr", value: 6, info: "Detalhes Abril" },
+      { month: "Mai", value: 6, info: "Detalhes Maio" },
+      { month: "Jun", value: 6, info: "Detalhes Junho" },
+      { month: "Jul", value: 6, info: "Detalhes Julho" },
+      { month: "Ago", value: 6, info: "Detalhes Agosto" },
+      { month: "Set", value: 6, info: "Detalhes Setembro" },
+      { month: "Out", value: 6, info: "Detalhes Outubro" },
+      { month: "Nov", value: 6, info: "Detalhes Novembro" },
+      { month: "Dez", value: 6, info: "Detalhes Dezembro" },
+    ]);
 
-    // ---------- CLIENTES ONBOARDING e RISCO (mantido, mas ignorando MTZ) ----------
+    // ---------- CLIENTES ONBOARDING e RISCO (mantidos sem filtragem MTZ) ----------
     try {
       const sheet =
         wbData.Sheets["Clientes em Risco"] ||
@@ -776,11 +858,6 @@ export default function Monitoramento() {
           const slice = [];
           for (let c = 3; c <= 8; c++) slice.push(row[c] ?? "");
           if (slice.every((v) => v === "")) continue;
-          // ignore rows that contain MTZ anywhere
-          const anyContainsMTZ = slice.some((val) =>
-            IGNORE_SET.has(normalizeCode(val))
-          );
-          if (anyContainsMTZ) continue;
           onboarding.push(slice);
         }
       } else {
@@ -792,16 +869,12 @@ export default function Monitoramento() {
           if (slice.every((v) => v === "")) continue;
           const joined = (row || []).join(" ").toLowerCase();
           if (/total geral|total/i.test(joined)) break;
-          const anyContainsMTZ = slice.some((val) =>
-            IGNORE_SET.has(normalizeCode(val))
-          );
-          if (anyContainsMTZ) continue;
           onboarding.push(slice);
         }
       }
       setOnboardingRows(onboarding);
 
-      // riscos
+      // riscos (mantido como antes, sem filtro MTZ)
       const risco3 = [];
       const risco2 = [];
       const risco1 = [];
@@ -831,10 +904,6 @@ export default function Monitoramento() {
           const slice = [];
           for (let c = 3; c <= 8; c++) slice.push(row[c] ?? "");
           if (slice.every((v) => v === "")) continue;
-          const anyContainsMTZ = slice.some((val) =>
-            IGNORE_SET.has(normalizeCode(val))
-          );
-          if (anyContainsMTZ) continue;
           if (currentRisk === 3) risco3.push(slice);
           if (currentRisk === 2) risco2.push(slice);
           if (currentRisk === 1) risco1.push(slice);
@@ -872,12 +941,12 @@ export default function Monitoramento() {
 
         <div className="chart-column">
           <div className="chart-card">
-            <h3>Gráfico Mês a Mês</h3>
+            <h3 style={{ textAlign: "center" }}>Acompanhamento Mês a Mês</h3>
+
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
                 data={chartData}
                 margin={{ top: 10, right: 12, left: 0, bottom: 10 }}
-                onMouseLeave={() => setActiveBarIndex(null)}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
@@ -892,25 +961,23 @@ export default function Monitoramento() {
                     <Cell
                       key={`cell-${idx}`}
                       fill={idx === activeBarIndex ? "#a28ef0" : "#8884d8"}
-                      className="chart-bar-cell"
                     />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-
             {showMonthPopup && (
               <div className="month-popup">
                 <strong>{showMonthPopup.month}</strong>: {showMonthPopup.value}{" "}
-                itens
-                <div className="popup-info">{showMonthPopup.info}</div>
+                itens<div className="popup-info">{showMonthPopup.info}</div>
               </div>
             )}
           </div>
 
-          {/* Onboarding abaixo do gráfico */}
           <div className="onboarding-card">
-            <h3>Clientes Onboarding</h3>
+            <h3 style={{ textAlign: "center" }}>
+              <i>CLIENTES ONBOARDING</i>
+            </h3>
             <div className="onboarding-table-wrapper">
               <table className="onboarding-table">
                 <thead>
@@ -935,11 +1002,12 @@ export default function Monitoramento() {
         </div>
       </div>
 
-      {/* Riscos 3/2/1 em linha */}
       <div className="lower-section">
         <div className="three-risks">
           <div className="risk-col">
-            <h4>Clientes em Risco 3</h4>
+            <h3 style={{ textAlign: "center", color: "#ff0000ff" }}>
+              <i>CLIENTES EM RISCO 3</i>
+            </h3>
             <table className="risk-table">
               <thead>
                 <tr>
@@ -961,7 +1029,9 @@ export default function Monitoramento() {
           </div>
 
           <div className="risk-col">
-            <h4>Clientes em Risco 2</h4>
+            <h3 style={{ textAlign: "center", color: "#ffe600ff" }}>
+              <i>CLIENTES EM RISCO 2</i>
+            </h3>
             <table className="risk-table">
               <thead>
                 <tr>
@@ -983,7 +1053,9 @@ export default function Monitoramento() {
           </div>
 
           <div className="risk-col">
-            <h4>Clientes em Risco 1</h4>
+            <h3 style={{ textAlign: "center", color: "#09ff00ff" }}>
+              <i>CLIENTES EM RISCO 1</i>
+            </h3>
             <table className="risk-table">
               <thead>
                 <tr>
