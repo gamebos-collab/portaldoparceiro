@@ -407,11 +407,11 @@ export default function Monitoramento() {
 
       const cellsMap = {
         totalHoje: "BJ11",
-        abertosHoje: "BK11",
-        fechadosHoje: "BL11",
-        semParecer: "BM11",
-        faltaTotal: "BN11",
-        avariaTotal: "BO11",
+        abertosHoje: "BM11",
+        fechadosHoje: "BK11",
+        semParecer: "BR11",
+        faltaTotal: "BO11",
+        avariaTotal: "BQ11",
       };
 
       const newCards = {};
