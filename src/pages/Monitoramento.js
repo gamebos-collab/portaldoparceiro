@@ -180,8 +180,8 @@ function sheetToJson(sheet) {
 function StatCard({ title, value }) {
   return (
     <div className="stat-card">
-      <div className="stat-title">{title}</div>
-      <div className="stat-value">{value ?? "--"}</div>
+      <h3 style={{ fontSize: "15px" }}>{title}</h3>
+      <p style={{ fontSize: "20px" }}>{value}</p>
     </div>
   );
 }
@@ -229,10 +229,10 @@ function RankingTable({ rankingData, previousRanks }) {
           <tr>
             <th>Parceiro</th>
             <th>Centralizadora</th>
-            <th>0 a 5</th>
-            <th>6 a 10</th>
-            <th>11 a 15</th>
-            <th>&gt; 15</th>
+            <th>5 Dias</th>
+            <th>10 Dias</th>
+            <th>15 Dias</th>
+            <th>+ 15 Dias</th>
             <th>Total Geral</th>
           </tr>
         </thead>
@@ -923,12 +923,12 @@ export default function Monitoramento() {
   return (
     <div className="home-container">
       <div className="top-cards">
-        <StatCard title="Total de B.Os hoje" value={cards.totalHoje} />
+        <StatCard title="Total de B.Os" value={cards.totalHoje} />
         <StatCard title="B.Os abertos hoje" value={cards.abertosHoje} />
         <StatCard title="B.Os Fechados hoje" value={cards.fechadosHoje} />
-        <StatCard title="B.Os sem parecer" value={cards.semParecer} />
+        <StatCard title="B.Os Sem parecer" value={cards.semParecer} />
         <StatCard title="B.Os Falta total" value={cards.faltaTotal} />
-        <StatCard title="B.Os avaria Total" value={cards.avariaTotal} />
+        <StatCard title="B.Os Avaria Total" value={cards.avariaTotal} />
       </div>
 
       <div className="middle-row">
@@ -941,7 +941,9 @@ export default function Monitoramento() {
 
         <div className="chart-column">
           <div className="chart-card">
-            <h3 style={{ textAlign: "center" }}>Acompanhamento Mês a Mês</h3>
+            <h3 style={{ textAlign: "center" }}>
+              <i>ACOMPANHAMENTO MÊS A MÊS</i>
+            </h3>
 
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
