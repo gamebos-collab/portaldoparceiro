@@ -16,6 +16,7 @@ import "./Monitoramento.css";
 /* -------------------------
    Centralizadora / parceiros
    ------------------------- */
+
 const CENTRALIZADORA_MAP = {
   CXS: ["ERE", "PFU", "VAC", "VER", "LGV"],
   POA: ["PEL", "NHA", "CMQ", "OSO", "PO2", "RIG", "LAJ", "CBN", "CAI", "GRA"],
