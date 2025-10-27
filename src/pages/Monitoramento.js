@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import {
   BarChart,
@@ -312,7 +312,8 @@ export default function Monitoramento() {
     avariaTotal: null,
   });
   const [rankingData, setRankingData] = useState([]);
-  const [previousRanks, setPreviousRanks] = useState(null);
+  // previousRanks is unused for now; pass null to RankingTable (avoids unused setState)
+  const previousRanks = null;
   const [chartData, setChartData] = useState([]);
   const [showMonthPopup, setShowMonthPopup] = useState(null);
   const [onboardingHeaders, setOnboardingHeaders] = useState([]);
@@ -323,7 +324,12 @@ export default function Monitoramento() {
     risco2: [],
     risco1: [],
   });
-  const [activeBarIndex, setActiveBarIndex] = useState(null);
+  // activeBar holds which series and index is hovered: { series: "abertos"|"fechados", idx: number }
+  const [activeBar, setActiveBar] = useState(null);
+
+  // refs for positioning popup and timing
+  const chartWrapperRef = useRef(null);
+  const popupTimerRef = useRef(null);
 
   // carregar workbook (tenta xlsm e xlsx)
   useEffect(() => {
@@ -428,8 +434,8 @@ export default function Monitoramento() {
 
         let value = raw;
         if (typeof value === "string") {
-          const only = value.trim().replace(/[^\d,.\-]/g, "");
-          if (/^[\d.,\-]+$/.test(only)) {
+          const only = value.trim().replace(/[^\d.,-]/g, "");
+          if (/^[\d.,-]+$/.test(only)) {
             if (only.indexOf(",") > -1 && only.indexOf(".") > -1) {
               const num = Number(only.replace(/\./g, "").replace(",", "."));
               if (!Number.isNaN(num)) value = num;
@@ -801,20 +807,26 @@ export default function Monitoramento() {
       console.error("Erro ao montar ranking:", err);
     }
 
-    // ---------- GRÁFICO: (placeholder) ----------
+    // ---------- GRÁFICO: agora com 2 séries (abertos / fechados) ----------
+    // Exemplo placeholder: cada mês tem 'abertos' (B.Os abertos no mês) e 'fechados' (B.Os fechados no mês)
     setChartData([
-      { month: "Jan", value: 10, info: "Detalhes Janeiro" },
-      { month: "Fev", value: 8, info: "Detalhes Fevereiro" },
-      { month: "Mar", value: 12, info: "Detalhes Março" },
-      { month: "Abr", value: 6, info: "Detalhes Abril" },
-      { month: "Mai", value: 6, info: "Detalhes Maio" },
-      { month: "Jun", value: 6, info: "Detalhes Junho" },
-      { month: "Jul", value: 6, info: "Detalhes Julho" },
-      { month: "Ago", value: 6, info: "Detalhes Agosto" },
-      { month: "Set", value: 6, info: "Detalhes Setembro" },
-      { month: "Out", value: 6, info: "Detalhes Outubro" },
-      { month: "Nov", value: 6, info: "Detalhes Novembro" },
-      { month: "Dez", value: 6, info: "Detalhes Dezembro" },
+      {
+        month: "Janeiro",
+        abertos: 6419,
+        fechados: 4681,
+        info: "No mês de janeiro, foram registrados 72,93% dos B.Os efetivamente resolvidos.",
+      },
+      { month: "Fev", abertos: 9722, fechados: 9250, info: "Fev - redução" },
+      { month: "Mar", abertos: 6994, fechados: 6871, info: "Mar - pico" },
+      { month: "Abr", abertos: 8312, fechados: 8127, info: "Abr - queda" },
+      { month: "Mai", abertos: 7994, fechados: 8360, info: "Mai - estável" },
+      { month: "Jun", abertos: 7144, fechados: 7079, info: "Jun - folga" },
+      { month: "Jul", abertos: 9019, fechados: 9225, info: "Jul - ok" },
+      { month: "Ago", abertos: 9764, fechados: 9462, info: "Ago - aumento" },
+      { month: "Set", abertos: 9543, fechados: 9497, info: "Set - ok" },
+      { month: "Out", abertos: 10387, fechados: 10801, info: "Out - ok" },
+      { month: "Nov", abertos: 10, fechados: 6, info: "Nov - ok" },
+      { month: "Dez", abertos: 7, fechados: 6, info: "Dez - fim" },
     ]);
 
     // ---------- CLIENTES ONBOARDING e RISCO (mantidos sem filtragem MTZ) ----------
@@ -916,9 +928,110 @@ export default function Monitoramento() {
     }
   }, [wbData]);
 
-  function handleBarClick(data, index) {
-    setShowMonthPopup({ ...data, index });
-    setTimeout(() => setShowMonthPopup(null), 4000);
+  function clearPopupTimer() {
+    if (popupTimerRef.current) {
+      clearTimeout(popupTimerRef.current);
+      popupTimerRef.current = null;
+    }
+  }
+
+  // now handleBarClick receives event, data (entry), idx, and series ("abertos" or "fechados")
+  function handleBarClick(event, data, index, series) {
+    if (!chartWrapperRef.current) {
+      setShowMonthPopup({ ...data, index, series });
+      clearPopupTimer();
+      popupTimerRef.current = setTimeout(() => setShowMonthPopup(null), 4000);
+      return;
+    }
+
+    const rect = chartWrapperRef.current.getBoundingClientRect();
+    const relativeX = event.clientX - rect.left;
+    const relativeY = event.clientY - rect.top;
+
+    // size constraints for popup
+    const popupWidth = 240;
+    const popupHeight = 96;
+
+    let left = relativeX - popupWidth / 2;
+    if (left < 8) left = 8;
+    if (left + popupWidth > rect.width - 8) left = rect.width - popupWidth - 8;
+    let top = relativeY - popupHeight - 12;
+    if (top < 8) top = relativeY + 12; // if not enough space above, show below
+
+    setShowMonthPopup({ ...data, index, x: left, y: top, series });
+    // auto-hide after 4s (reset timer)
+    clearPopupTimer();
+    popupTimerRef.current = setTimeout(() => setShowMonthPopup(null), 4000);
+  }
+
+  useEffect(() => {
+    return () => {
+      clearPopupTimer();
+    };
+  }, []);
+
+  // Custom tooltip will show both values (abertos / fechados) when hovering
+  function CustomTooltip({ active, payload, label }) {
+    if (active && payload && payload.length) {
+      // payload[0].payload contains the whole data object for that category
+      const p = payload[0].payload || {};
+      return (
+        <div
+          style={{
+            background: "rgba(255,255,255,0.98)",
+            boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
+            borderRadius: 8,
+            padding: "8px 10px",
+            fontSize: 12,
+            color: "#111",
+            border: "1px solid rgba(0,0,0,0.06)",
+            minWidth: 160,
+          }}
+        >
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>{p.month}</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 4,
+            }}
+          >
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  background: "#8f0000ff",
+                  borderRadius: 2,
+                }}
+              />
+              <div style={{ fontSize: 13 }}>Abertos</div>
+            </div>
+            <div style={{ fontWeight: 700 }}>{p.abertos ?? "-"}</div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  background: "#09ff00ff",
+                  borderRadius: 2,
+                }}
+              />
+              <div style={{ fontSize: 13 }}>Fechados</div>
+            </div>
+            <div style={{ fontWeight: 700 }}>{p.fechados ?? "-"}</div>
+          </div>
+          {p.info && (
+            <div style={{ color: "#444", fontSize: 11, marginTop: 8 }}>
+              {p.info}
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
   }
 
   return (
@@ -941,7 +1054,11 @@ export default function Monitoramento() {
         </div>
 
         <div className="chart-column">
-          <div className="chart-card">
+          <div
+            className="chart-card"
+            ref={chartWrapperRef}
+            style={{ position: "relative", overflow: "visible" }}
+          >
             <h3 style={{ textAlign: "center" }}>
               <i>ACOMPANHAMENTO MÊS A MÊS</i>
             </h3>
@@ -949,30 +1066,189 @@ export default function Monitoramento() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
                 data={chartData}
-                margin={{ top: 10, right: 12, left: 0, bottom: 10 }}
+                margin={{ top: 1, right: 2, left: -56, bottom: -10 }}
+                // overlap the two bars by giving a negative barGap
+                barCategoryGap="20%"
+                barGap={0}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+                <defs>
+                  <linearGradient id="barGradientOpen" x1="0" x2="1">
+                    <stop offset="0%" stopColor="#09ff00ff " stopOpacity={1} />
+                    <stop offset="100%" stopColor="#ffffffff" stopOpacity={1} />
+                  </linearGradient>
+                  <linearGradient id="barGradientClosed" x1="0" x2="1">
+                    <stop offset="0%" stopColor="#000000ff" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#8f0000ff" stopOpacity={1} />
+                  </linearGradient>
+                  <filter
+                    id="barShadow"
+                    x="-50%"
+                    y="-50%"
+                    width="200%"
+                    height="200%"
+                  >
+                    <feDropShadow
+                      dx="0"
+                      dy="6"
+                      stdDeviation="8"
+                      floodColor="#000"
+                      floodOpacity="0.12"
+                    />
+                  </filter>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" opacity={0.7} />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip content={<CustomTooltip />} />
+
+                {/* Inner bar = fechados (narrower, drawn after => visually on top) */}
+                {/* Barra 1: abertos (base da pilha) */}
                 <Bar
-                  dataKey="value"
-                  onClick={(d, idx) => handleBarClick(d.payload, idx)}
-                  onMouseEnter={(_, idx) => setActiveBarIndex(idx)}
+                  dataKey="abertos"
+                  stackId="a"
+                  radius={[0, 0, 0, 0]}
+                  barSize={40}
+                  maxBarSize={48}
+                  animationDuration={900}
                 >
                   {chartData.map((entry, idx) => (
                     <Cell
-                      key={`cell-${idx}`}
-                      fill={idx === activeBarIndex ? "#a28ef0" : "#8884d8"}
+                      key={`abertos-cell-${idx}`}
+                      fill="url(#barGradientOpen)"
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={() =>
+                        setActiveBar({ series: "abertos", idx })
+                      }
+                      onMouseLeave={() => setActiveBar(null)}
+                      onClick={(e) => handleBarClick(e, entry, idx, "abertos")}
+                    />
+                  ))}
+                </Bar>
+
+                {/* Barra 2: fechados (empilhada sobre 'abertos') */}
+                <Bar
+                  dataKey="fechados"
+                  stackId="a"
+                  radius={[50, 0, 0, 0]}
+                  barSize={40} // mesmo barSize para empilhamento alinhado
+                  maxBarSize={48}
+                  animationDuration={900}
+                >
+                  {chartData.map((entry, idx) => (
+                    <Cell
+                      key={`fechados-cell-${idx}`}
+                      fill="url(#barGradientClosed)"
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={() =>
+                        setActiveBar({ series: "fechados", idx })
+                      }
+                      onMouseLeave={() => setActiveBar(null)}
+                      onClick={(e) => handleBarClick(e, entry, idx, "fechados")}
                     />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            {showMonthPopup && (
-              <div className="month-popup">
-                <strong>{showMonthPopup.month}</strong>: {showMonthPopup.value}{" "}
-                itens<div className="popup-info">{showMonthPopup.info}</div>
+
+            {showMonthPopup && typeof showMonthPopup.x === "number" && (
+              <div
+                className="month-popup"
+                style={{
+                  position: "absolute",
+                  left: showMonthPopup.x,
+                  top: showMonthPopup.y,
+                  width: 240,
+                  zIndex: 60,
+                  pointerEvents: "auto",
+                  transform: "translateZ(0)",
+                }}
+              >
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    boxShadow: "0 8px 28px rgba(20,20,40,0.12)",
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    fontSize: 13,
+                    color: "#111",
+                    minHeight: 80,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <strong style={{ fontSize: 15 }}>
+                      {showMonthPopup.month}
+                    </strong>
+                    <span style={{ fontWeight: 700, color: "#333" }}>
+                      {showMonthPopup[showMonthPopup.series] ?? "-"} itens
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 12, marginBottom: 6 }}>
+                    <div
+                      style={{ display: "flex", gap: 8, alignItems: "center" }}
+                    >
+                      <div
+                        style={{
+                          width: 10,
+                          height: 10,
+                          background: "#a28ef0",
+                          borderRadius: 2,
+                        }}
+                      />
+                      <div style={{ fontSize: 13 }}>
+                        Abertos:{" "}
+                        <strong>{showMonthPopup.abertos ?? "-"}</strong>
+                      </div>
+                    </div>
+                    <div
+                      style={{ display: "flex", gap: 8, alignItems: "center" }}
+                    >
+                      <div
+                        style={{
+                          width: 10,
+                          height: 10,
+                          background: "#6ea6ff",
+                          borderRadius: 2,
+                        }}
+                      />
+                      <div style={{ fontSize: 13 }}>
+                        Fechados:{" "}
+                        <strong>{showMonthPopup.fechados ?? "-"}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ color: "#555", fontSize: 12 }}>
+                    {showMonthPopup.info || "Sem informações adicionais"}
+                    <div style={{ marginTop: 8, fontSize: 11, color: "#666" }}>
+                      Clique na barra para abrir esse popup. (Fecha
+                      automaticamente em 4s)
+                    </div>
+                  </div>
+                </div>
+                {/* small arrow */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    top: "100%",
+                    width: 0,
+                    height: 0,
+                    borderLeft: "9px solid transparent",
+                    borderRight: "9px solid transparent",
+                    borderTop: "9px solid rgba(0,0,0,0.06)",
+                  }}
+                />
               </div>
             )}
           </div>
