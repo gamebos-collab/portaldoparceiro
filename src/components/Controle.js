@@ -59,7 +59,7 @@ const parceirosPorCentralizadora = {
   SOR: ["ITP"],
   RIP: ["FCA", "PTF", "OCA", "PSS"],
   SUM: [],
-  SÃO: [
+  SAO: [
     "REG",
     "SAN",
     "SJK",
@@ -133,7 +133,7 @@ const estadoCentralizadoras = {
   "Santa Catarina": ["BLU", "JVL", "FLN"],
   "Minas Gerais": ["PPY", "BHZ"],
   Paraná: ["CWB", "LDA", "CAS"],
-  "São Paulo": ["SOR", "RIP", "SUM", "SÃO", "GRU", "BAU", "CPN"],
+  "São Paulo": ["SOR", "RIP", "SUM", "SAO", "GRU", "BAU", "CPN"],
   "Espírito Santo": ["VIX"],
   Ceará: ["CRA"],
 };

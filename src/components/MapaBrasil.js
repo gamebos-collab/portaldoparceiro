@@ -12,7 +12,7 @@ const estadoCentralizadoras = {
   "Santa Catarina": ["BLU", "JVL", "FLN"],
   "Minas Gerais": ["PPY", "BHZ"],
   Paraná: ["CWB", "LDA", "CAS"],
-  "São Paulo": ["SOR", "RIP", "SUM", "SÃO", "GRU", "BAU", "CPN"],
+  "São Paulo": ["SOR", "RIP", "SUM", "SAO", "GRU", "BAU", "CPN"],
   "Espírito Santo": ["VIX"],
   Ceará: ["CRA"],
   // Adicione outros estados se necessário
