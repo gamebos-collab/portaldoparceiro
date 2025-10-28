@@ -13,6 +13,8 @@ import Quemsomos from "./pages/Quemsomos";
 import Sobreoportal from "./pages/Sobreoportal";
 import Contatos from "./pages/Contatos";
 import Monitoramento from "./pages/Monitoramento";
+import DetalhesCentralizadora from "./components/DetalhesCentralizadora";
+import DetalhesResponsavel from "./components/DetalhesResponsavel";
 import "./App.css";
 
 function AppRoutes() {
@@ -28,6 +30,11 @@ function AppRoutes() {
       <Route path="/informacoes/faq" element={<Faq />} />
       <Route path="/institucional/sobre" element={<Sobreoportal />} />
       <Route path="/institucional/quemsomos" element={<Quemsomos />} />
+      <Route
+        path="/detalhes-centralizadora"
+        element={<DetalhesCentralizadora />}
+      />
+      <Route path="/detalhes-responsavel" element={<DetalhesResponsavel />} />
     </Routes>
   );
 }
