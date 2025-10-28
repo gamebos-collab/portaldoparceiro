@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
   Legend,
   Cell,
+  CartesianGrid,
+  LabelList,
 } from "recharts";
 import "./Controle.css";
 
@@ -241,18 +243,18 @@ const gerentesRegionais = {
 };
 
 const barColors = [
-  "#3f51b5",
-  "#1976d2",
-  "#43e97b",
-  "#38f9d7",
-  "#e040fb",
-  "#ff7043",
-  "#7c4dff",
-  "#00bcd4",
-  "#8bc34a",
-  "#ffd600",
-  "#ff4081",
-  "#00e676",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
+  "#DAA520",
 ];
 
 // Componente para a tabela de reversões
@@ -643,7 +645,7 @@ function TabelaBOsBaixados({
       <style>{`
         @keyframes pulse {
           0% { opacity: 1; }
-      `}</style>
+        `}</style>
     </div>
   );
 }
@@ -656,6 +658,9 @@ export default function Home() {
   const [erro, setErro] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState("visao");
+
+  // novo estado para controlar hover no gráfico
+  const [activeBarIndex, setActiveBarIndex] = useState(null);
 
   // Impede scroll do fundo quando popup está ativo
   useEffect(() => {
@@ -1103,6 +1108,105 @@ export default function Home() {
     />
   );
 
+  // Utility: shade or lighten a hex color by percent (-100 to 100)
+  const shadeColor = (hex, percent) => {
+    try {
+      let h = hex.replace("#", "");
+      if (h.length === 3) {
+        h = h
+          .split("")
+          .map((c) => c + c)
+          .join("");
+      }
+      const num = parseInt(h, 16);
+      let r = (num >> 16) & 0xff;
+      let g = (num >> 8) & 0xff;
+      let b = num & 0xff;
+
+      const amt = Math.round((percent / 100) * 255);
+      r = Math.min(255, Math.max(0, r + amt));
+      g = Math.min(255, Math.max(0, g + amt));
+      b = Math.min(255, Math.max(0, b + amt));
+
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    } catch (e) {
+      return hex;
+    }
+  };
+
+  // Custom tooltip para o gráfico, similar ao estilo aplicado no outro arquivo
+  function CustomGraficoTooltip({ active, payload }) {
+    if (active && payload && payload.length) {
+      const p = payload[0].payload || {};
+      return (
+        <div
+          style={{
+            background: "rgba(255,255,255,0.98)",
+            boxShadow: "0 6px 18px rgba(20,20,40,0.12)",
+            borderRadius: 8,
+            padding: "8px 12px",
+            fontSize: 13,
+            color: "#111",
+            border: "1px solid rgba(0,0,0,0.06)",
+            minWidth: 140,
+          }}
+        >
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>{p.parceiro}</div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ color: "#444" }}>B.Os</div>
+            <div style={{ fontWeight: 700 }}>{p.bos ?? 0}</div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  // Render 3D-looking bar shape for Recharts
+  const render3DBar = (props) => {
+    const { x, y, width, height, fill } = props;
+    // depth is how pronounced the 3D effect is
+    const depth = Math.min(12, Math.round(width * 0.22));
+    const rx = 6; // corner radius
+
+    // Points for the right face (slanted to top-right)
+    const x0 = x;
+    const y0 = y;
+    const x1 = x + width;
+    const y1 = y + height;
+
+    const rightFace = `${x1},${y0} ${x1 + depth},${Math.max(0, y0 - depth)} ${
+      x1 + depth
+    },${Math.max(0, y1 - depth)} ${x1},${y1}`;
+    const topFace = `${x0},${y0} ${x0 + depth},${Math.max(0, y0 - depth)} ${
+      x1 + depth
+    },${Math.max(0, y0 - depth)} ${x1},${y0}`;
+
+    const frontFill = fill || "#8884d8";
+    const sideFill = shadeColor(frontFill, -22);
+    const topFill = shadeColor(frontFill, 16);
+
+    return (
+      <g>
+        {/* right side face */}
+        <polygon points={rightFace} fill={sideFill} />
+        {/* top face */}
+        <polygon points={topFace} fill={topFill} />
+        {/* front face with rounded corners */}
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          rx={rx}
+          ry={rx}
+          fill={frontFill}
+          style={{ filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.12))" }}
+        />
+      </g>
+    );
+  };
+
   // Renderiza o popup
   const renderPopup = () => {
     // Etapa 1: Escolher centralizadora
@@ -1165,31 +1269,75 @@ export default function Home() {
           case "grafico":
             return (
               <ResponsiveContainer width="100%" height={340}>
-                <BarChart data={graficoData}>
+                <BarChart
+                  data={graficoData}
+                  margin={{ top: 18, right: 12, left: 6, bottom: 18 }}
+                  barCategoryGap="18%"
+                  barGap={0}
+                >
+                  <defs>
+                    <filter
+                      id="barShadow"
+                      x="-50%"
+                      y="-50%"
+                      width="200%"
+                      height="200%"
+                    >
+                      <feDropShadow
+                        dx="0"
+                        dy="6"
+                        stdDeviation="8"
+                        floodColor="#000"
+                        floodOpacity="0.12"
+                      />
+                    </filter>
+                  </defs>
+
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
                   <XAxis
                     dataKey="parceiro"
                     tick={{ fill: "#fff", fontWeight: 700 }}
                   />
                   <YAxis tick={{ fill: "#fff", fontWeight: 700 }} />
-                  <Tooltip
-                    wrapperStyle={{ fontSize: "1rem" }}
-                    contentStyle={{
-                      background: "#072d4d",
-                      border: "none",
-                      color: "#fff",
-                    }}
-                    labelStyle={{ color: "#ffe200", fontWeight: 700 }}
-                  />
+                  <Tooltip content={<CustomGraficoTooltip />} />
                   <Legend />
+
                   <Bar
                     dataKey="bos"
                     name="B.O"
                     isAnimationActive={true}
-                    label={{ position: "top", fill: "#ffe200" }}
+                    barSize={40}
+                    radius={[8, 8, 0, 0]}
+                    animationDuration={800}
+                    shape={render3DBar} // apply 3D custom shape
                   >
-                    {graficoData.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={entry.fill} />
-                    ))}
+                    {/* LabelList para exibir número em cima da barra */}
+                    <LabelList
+                      dataKey="bos"
+                      position="top"
+                      offset={15}
+                      style={{
+                        fill: "#ffffffff",
+                        fontWeight: 1000,
+                        fontSize: 17,
+                      }}
+                    />
+                    {graficoData.map((entry, idx) => {
+                      const isActive = idx === activeBarIndex;
+                      return (
+                        <Cell
+                          key={`cell-${idx}`}
+                          fill={entry.fill}
+                          style={{
+                            cursor: "pointer",
+                            opacity: isActive ? 1 : 0.98,
+                          }}
+                          onMouseEnter={() => setActiveBarIndex(idx)}
+                          onMouseLeave={() => setActiveBarIndex(null)}
+                          onClick={() => abrirDetalhes(entry.parceiro)}
+                        />
+                      );
+                    })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -1290,7 +1438,13 @@ export default function Home() {
                   background: "transparent",
                 }}
               >
-                {abas.map((aba) => (
+                {[
+                  { key: "visao", label: "Visão Geral" },
+                  { key: "grafico", label: "Gráfico" },
+                  { key: "criticos", label: "Criticidade" },
+                  { key: "revercoes", label: "Reversões" },
+                  { key: "baixados", label: "B.O's Análises" },
+                ].map((aba) => (
                   <button
                     key={aba.key}
                     className={abaAtiva === aba.key ? "aba ativa" : "aba"}
