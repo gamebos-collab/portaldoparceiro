@@ -328,8 +328,8 @@ export default function DetalhesCentralizadora() {
     whiteSpace: "normal",
     overflowWrap: "break-word",
     wordBreak: "break-word",
-    fontSize: 8,
-    lineHeight: 1.2,
+    fontSize: 10,
+    lineHeight: 1.5,
     textAlign: "center",
   };
 
@@ -342,8 +342,8 @@ export default function DetalhesCentralizadora() {
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: 420,
-    fontSize: 12,
-    lineHeight: 1.2,
+    fontSize: 10,
+    lineHeight: 1.5,
     textAlign: "center",
   };
 
