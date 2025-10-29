@@ -2,267 +2,440 @@ import React, { useEffect, useMemo, useState } from "react";
 
 /**
  * Página: /detalhes-responsavel
- * Usa localStorage.dadosResponsavel para popular os dados (array de objetos).
- * Permite selecionar colunas a mostrar; seleção é salva em localStorage.detalhesResponsavelCols.
+ * Versão personalizada similar ao detalhes-centralizadora.
+ *
+ * Alteração solicitada: ordena os registros pela coluna "Faixa Score" (Critico > Alto > Medio > Baixo).
+ * - A ordenação é aplicada ao conjunto final de dados exibidos.
+ * - A detecção da coluna "Faixa Score" é case-insensitive e sem acentos.
+ * - Se não houver "Faixa Score", usa valor vazio como fallback (será ordenado por último).
+ *
+ * Edite SELECTED_COLUMNS se quiser alterar as colunas exibidas.
  */
 
+/* ----------------------
+   Defina aqui as colunas que quer extrair e exibir (ordem)
+   Ajuste os nomes conforme as chaves presentes nos objetos em localStorage.dadosResponsavel
+   ---------------------- */
+const SELECTED_COLUMNS = [
+  "BO",
+  "Nr Ct",
+  "Emissão Ct",
+  "Ocorrência",
+  "Parecer",
+  "Dt Parecer",
+  "Dias Aberto",
+  "Resp",
+  "Centralizadora",
+  "Vlr NF",
+  "Cliente",
+  "Notas Fiscais",
+  "Faixa Score",
+];
+
+const DISPLAY_NAMES = {
+  BO: "B.O",
+  "Nr Ct": "CT-e",
+  "Emissão Ct": "Emissão CT",
+  Ocorrência: "Ocorrência",
+  Parecer: "Parecer",
+  "Dt Parecer": "Data Parecer",
+  "Dias Aberto": "Dias Aberto",
+  Resp: "Responsável",
+  Centralizadora: "Centralizadora",
+  "Vlr NF": "Valor NF",
+  Cliente: "Cliente",
+  "Notas Fiscais": "Notas Fiscais",
+  "Faixa Score": "Faixa Score",
+};
+
+/* ----------------------
+   Utilitários
+   ---------------------- */
+function normalizeKey(s) {
+  if (s === null || s === undefined) return "";
+  return String(s)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[_\-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function excelSerialToDateString(serial) {
+  try {
+    const excelEpoch = new Date(1899, 11, 30);
+    const d = new Date(
+      excelEpoch.getTime() + Math.round(serial) * 24 * 60 * 60 * 1000
+    );
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  } catch {
+    return String(serial);
+  }
+}
+
+function parseDateStringToDDMMYYYY(s) {
+  if (!s) return null;
+  const str = String(s).trim();
+  const ddmmyyyy = /^(\d{1,2})[\/\-\.\s](\d{1,2})[\/\-\.\s](\d{2,4})$/;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/;
+  let m = str.match(ddmmyyyy);
+  if (m) {
+    let d = m[1].padStart(2, "0");
+    let mo = m[2].padStart(2, "0");
+    let yy = m[3].length === 2 ? `20${m[3]}` : m[3];
+    return `${d}/${mo}/${yy}`;
+  }
+  m = str.match(iso);
+  if (m) {
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+  const dt = new Date(str);
+  if (!isNaN(dt.getTime())) {
+    const dd = String(dt.getDate()).padStart(2, "0");
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const yyyy = dt.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+  return null;
+}
+
+function extractBeforeSlash(v) {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  const i = s.indexOf("/");
+  if (i === -1) return s.trim();
+  return s.slice(0, i).trim();
+}
+
+function formatCellValueByColumn(col, rawValue) {
+  if (rawValue === null || rawValue === undefined) return "";
+  const dateCols = new Set([
+    "Emissão",
+    "Emissão Ct",
+    "Dt Parecer",
+    "Emissão Ct",
+  ]);
+  if (dateCols.has(col)) {
+    if (typeof rawValue === "number") {
+      return excelSerialToDateString(rawValue);
+    }
+    if (typeof rawValue === "string") {
+      const parsed = parseDateStringToDDMMYYYY(rawValue);
+      if (parsed) return parsed;
+      return rawValue.trim();
+    }
+    return String(rawValue);
+  }
+
+  if (col === "Notas Fiscais") {
+    return extractBeforeSlash(rawValue);
+  }
+
+  return String(rawValue).trim();
+}
+
+/* Criticidade ordering helper (1 highest priority = Crítico) */
+function criticidadeOrderValue(val) {
+  if (val === null || val === undefined || String(val).trim() === "") return 99;
+  const n = normalizeKey(String(val));
+  if (n.includes("crit")) return 1; // crítico
+  if (n.includes("alto")) return 2;
+  if (n.includes("medi") || n.includes("medio") || n.includes("médio"))
+    return 3;
+  if (n.includes("baixo")) return 4;
+  return 99;
+}
+
+/* ----------------------
+   Componente
+   ---------------------- */
 export default function DetalhesResponsavel() {
-  const [data, setData] = useState([]);
+  const [raw, setRaw] = useState([]);
   const [responsabilidade, setResponsabilidade] = useState("");
-  const [selectedCols, setSelectedCols] = useState([]);
-  const [filterText, setFilterText] = useState("");
+  const [hoverCentral, setHoverCentral] = useState(null);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("dadosResponsavel");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setData(Array.isArray(parsed) ? parsed : []);
+      const rawStr = localStorage.getItem("dadosResponsavel");
+      if (rawStr) {
+        const parsed = JSON.parse(rawStr);
+        setRaw(Array.isArray(parsed) ? parsed : []);
       } else {
         const params = new URLSearchParams(window.location.search);
         const resp =
           params.get("responsabilidade") || params.get("responsavel");
         setResponsabilidade(resp || "");
-        setData([]);
-      }
-
-      const colRaw = localStorage.getItem("detalhesResponsavelCols");
-      if (colRaw) {
-        try {
-          setSelectedCols(JSON.parse(colRaw));
-        } catch {
-          setSelectedCols([]);
-        }
+        setRaw([]);
       }
     } catch (e) {
       console.error("Erro ler dadosResponsavel:", e);
-      setData([]);
+      setRaw([]);
     }
   }, []);
 
-  const allColumns = useMemo(() => {
-    const keys = new Set();
-    data.forEach((row) => {
-      if (row && typeof row === "object") {
-        Object.keys(row).forEach((k) => keys.add(k));
-      }
+  // mapa normalized -> realKey
+  const keyMap = useMemo(() => {
+    const map = {};
+    (raw || []).forEach((row) => {
+      if (!row || typeof row !== "object") return;
+      Object.keys(row).forEach((rk) => {
+        const nk = normalizeKey(rk);
+        if (!map[nk]) map[nk] = rk;
+      });
     });
-    return Array.from(keys).sort();
+    return map;
+  }, [raw]);
+
+  // real key para Faixa Score (se existir)
+  const faixaScoreRealKey = useMemo(() => {
+    const nk = normalizeKey("Faixa Score");
+    return keyMap[nk] || null;
+  }, [keyMap]);
+
+  // map selected columns to real keys (se existirem)
+  const selectedToRealKey = useMemo(() => {
+    const map = {};
+    SELECTED_COLUMNS.forEach((col) => {
+      const nk = normalizeKey(col);
+      map[col] = keyMap[nk] || null;
+    });
+    return map;
+  }, [keyMap]);
+
+  // monta dados finais (apenas SELECTED_COLUMNS) e aplica formatação
+  // adiciona __faixaScore bruto para ordenação (prefere Faixa Score real key)
+  const data = useMemo(() => {
+    return (raw || []).map((row) => {
+      const out = {};
+      SELECTED_COLUMNS.forEach((col) => {
+        const realKey = selectedToRealKey[col];
+        if (
+          realKey &&
+          row &&
+          Object.prototype.hasOwnProperty.call(row, realKey)
+        ) {
+          out[col] = formatCellValueByColumn(col, row[realKey]);
+        } else {
+          out[col] = "";
+        }
+      });
+      // definir valor bruto de faixa score para ordenação
+      let faixaVal = "";
+      if (
+        faixaScoreRealKey &&
+        row &&
+        Object.prototype.hasOwnProperty.call(row, faixaScoreRealKey)
+      ) {
+        faixaVal = row[faixaScoreRealKey];
+      } else if (
+        row &&
+        selectedToRealKey["Criticidade"] &&
+        Object.prototype.hasOwnProperty.call(
+          row,
+          selectedToRealKey["Criticidade"]
+        )
+      ) {
+        faixaVal = row[selectedToRealKey["Criticidade"]];
+      } else {
+        // fallback: tentar encontrar qualquer chave que pareça ser criticidade
+        const fallbackKeys = [
+          "faixa",
+          "faixa score",
+          "criticidade",
+          "criticidade score",
+        ];
+        for (const fk of fallbackKeys) {
+          const rk = keyMap[normalizeKey(fk)];
+          if (rk && row && Object.prototype.hasOwnProperty.call(row, rk)) {
+            faixaVal = row[rk];
+            break;
+          }
+        }
+      }
+      out.__faixaScore = faixaVal;
+      return out;
+    });
+  }, [raw, selectedToRealKey, faixaScoreRealKey, keyMap]);
+
+  // infer partner name: priority - query param > first non-empty Resp-like column value > hover
+  const inferredPartnerName = useMemo(() => {
+    if (responsabilidade) return responsabilidade;
+    const candidateKeys = [
+      "Resp",
+      "Responsavel",
+      "Responsável",
+      "Resp CNO - BO",
+      "Resp CNO",
+    ];
+    const realKeys = candidateKeys
+      .map((k) => keyMap[normalizeKey(k)])
+      .filter(Boolean);
+    for (const row of raw || []) {
+      for (const rk of realKeys) {
+        if (row && typeof row === "object" && row[rk]) {
+          const v = String(row[rk]).trim();
+          if (v.length) return v;
+        }
+      }
+    }
+    return "";
+  }, [responsabilidade, raw, keyMap]);
+
+  const partnerName =
+    responsabilidade || inferredPartnerName || hoverCentral || "";
+
+  // Ordena pelo nível de criticidade (Faixa Score), escala Critico > Alto > Medio > Baixo
+  const sortedData = useMemo(() => {
+    const copy = [...(data || [])];
+    copy.sort((a, b) => {
+      const va = criticidadeOrderValue(a.__faixaScore);
+      const vb = criticidadeOrderValue(b.__faixaScore);
+      if (va !== vb) return va - vb;
+      // tie-breaker: Dt Parecer mais recente primeiro
+      const da = parseDateStringToDDMMYYYY(a["Dt Parecer"]);
+      const db = parseDateStringToDDMMYYYY(b["Dt Parecer"]);
+      const toTs = (dstr) => {
+        if (!dstr) return 0;
+        const [dd, mm, yyyy] = dstr.split("/");
+        const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+        return date.getTime();
+      };
+      return toTs(db) - toTs(da);
+    });
+    return copy;
   }, [data]);
 
-  useEffect(() => {
-    if (selectedCols && selectedCols.length > 0) return;
-    if (allColumns.length === 0) return;
-    const preferred = [
-      "BO",
-      "Numero do BO",
-      "Cliente",
-      "Ocorrência",
-      "Parecer",
-      "Resp",
-      "Dt Parecer",
-    ];
-    const defaultCols = allColumns.filter((c) => preferred.includes(c));
-    setSelectedCols(defaultCols.length ? defaultCols : allColumns.slice(0, 6));
-  }, [allColumns, selectedCols]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "detalhesResponsavelCols",
-        JSON.stringify(selectedCols)
-      );
-    } catch {}
-  }, [selectedCols]);
-
-  const toggleCol = (col) => {
-    setSelectedCols((prev) => {
-      if (prev.includes(col)) return prev.filter((c) => c !== col);
-      return [...prev, col];
-    });
+  // estilos (mesma estética do centralizadora)
+  const containerStyle = { padding: 20 };
+  const titleStyle = { marginBottom: 5, textAlign: "center", color: "#18304b" };
+  const infoStyle = { color: "#666", marginTop: 0, textAlign: "center" };
+  const tableContainerStyle = { overflowX: "hidden", marginTop: 12 };
+  const tableStyle = {
+    width: "100%",
+    borderCollapse: "collapse",
+    background: "#fff",
+    tableLayout: "fixed",
   };
 
-  const selectAll = () => setSelectedCols(allColumns.slice());
-  const clearAll = () => setSelectedCols([]);
+  const thBase = {
+    padding: "6px 8px",
+    textAlign: "center",
+    fontSize: 10,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  };
 
-  const filteredData = useMemo(() => {
-    if (!filterText) return data;
-    const t = filterText.toLowerCase();
-    return data.filter((row) =>
-      Object.values(row || {}).some((v) =>
-        String(v ?? "")
-          .toLowerCase()
-          .includes(t)
-      )
-    );
-  }, [data, filterText]);
+  const tdBase = {
+    padding: "6px 8px",
+    verticalAlign: "top",
+    whiteSpace: "normal",
+    overflowWrap: "break-word",
+    wordBreak: "break-word",
+    fontSize: 10,
+    lineHeight: 1.5,
+    textAlign: "center",
+  };
+
+  // Cliente: no wrap + ellipsis
+  const thCliente = { ...thBase, maxWidth: 420 };
+  const tdCliente = {
+    padding: "6px 8px",
+    verticalAlign: "top",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: 420,
+    fontSize: 11,
+    lineHeight: 1.4,
+    textAlign: "center",
+  };
+
+  const displayHeaders = SELECTED_COLUMNS.map((c) => DISPLAY_NAMES[c] || c);
 
   return (
-    <div style={{ padding: 20 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 18,
-          marginBottom: 12,
-        }}
-      >
-        <div>
-          <h2 style={{ margin: 0 }}>
-            B.Os do Parceiro {responsabilidade || ""}
-          </h2>
-          <div style={{ color: "#666", marginTop: 4 }}>
-            {data.length} registro(s) carregado(s) do localStorage.
-          </div>
-        </div>
+    <div style={containerStyle}>
+      <h2 style={titleStyle}>B.Os do Parceiro {partnerName}</h2>
+      <p style={infoStyle}>{sortedData.length} B.Os carregados do KPI.</p>
 
-        <div style={{ marginLeft: "auto" }}>
-          <input
-            placeholder="Pesquisar (todas colunas)"
-            value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-            style={{
-              padding: "6px 8px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              minWidth: 220,
-              background: "#fff",
-            }}
-          />
+      {sortedData.length === 0 ? (
+        <div style={{ padding: 20, background: "#18304b", borderRadius: 8 }}>
+          Nenhum dado disponível. Verifique se a tela que abriu esta página
+          executou:
+          <pre style={{ whiteSpace: "normal", marginTop: 8 }}>
+            {`localStorage.setItem('dadosResponsavel', JSON.stringify(...))`}
+          </pre>
         </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 16 }}>
-        <aside
-          style={{
-            width: 300,
-            background: "#0f1724",
-            color: "#fff",
-            padding: 12,
-            borderRadius: 8,
-            boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 8,
-            }}
+      ) : (
+        <div style={tableContainerStyle}>
+          <table
+            style={tableStyle}
+            className="detalhes-table"
+            aria-label="B.Os do Parceiro"
           >
-            <strong>Colunas</strong>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={selectAll} style={buttonStyle}>
-                Tudo
-              </button>
-              <button onClick={clearAll} style={buttonStyle}>
-                Limpar
-              </button>
-            </div>
-          </div>
+            <thead>
+              <tr style={{ background: "#18304b", color: "#ffe200" }}>
+                {SELECTED_COLUMNS.map((col, idx) => {
+                  const thStyle = col === "Cliente" ? thCliente : thBase;
+                  return (
+                    <th key={col} style={thStyle} title={displayHeaders[idx]}>
+                      {displayHeaders[idx]}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
 
-          <div style={{ maxHeight: 360, overflowY: "auto", marginTop: 8 }}>
-            {allColumns.length === 0 ? (
-              <div style={{ color: "#d1d5db" }}>Sem colunas disponíveis</div>
-            ) : (
-              allColumns.map((col) => {
-                const checked = selectedCols.includes(col);
+            <tbody>
+              {sortedData.map((row, i) => {
+                const rowStyle = {
+                  background: i % 2 === 0 ? "#f7faff" : "#eef3fb",
+                  color: "#072d4d",
+                  cursor: "pointer",
+                };
                 return (
-                  <label
-                    key={col}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 6,
-                    }}
+                  <tr
+                    key={i}
+                    style={rowStyle}
+                    onMouseEnter={() =>
+                      setHoverCentral(row["Centralizadora"] || null)
+                    }
+                    onMouseLeave={() => setHoverCentral(null)}
+                    title={
+                      row.__faixaScore
+                        ? `Faixa Score: ${String(row.__faixaScore)}`
+                        : undefined
+                    }
                   >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleCol(col)}
-                    />
-                    <span style={{ color: "#fff" }}>{col}</span>
-                  </label>
-                );
-              })
-            )}
-          </div>
-
-          <div style={{ marginTop: 12, color: "#cbd5e1", fontSize: 13 }}>
-            A seleção é salva localmente para sua próxima visita.
-          </div>
-        </aside>
-
-        <main style={{ flex: 1 }}>
-          {filteredData.length === 0 ? (
-            <div style={{ padding: 20, background: "#fff", borderRadius: 8 }}>
-              Nenhum dado disponível. Verifique se a tela que abriu esta página
-              executou localStorage.setItem('dadosResponsavel',
-              JSON.stringify(...))
-            </div>
-          ) : selectedCols.length === 0 ? (
-            <div style={{ padding: 20, background: "#fff", borderRadius: 8 }}>
-              Nenhuma coluna selecionada. Marque ao menos uma coluna para
-              visualizar os dados.
-            </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  background: "#fff",
-                }}
-              >
-                <thead>
-                  <tr style={{ background: "#18304b", color: "#ffe200" }}>
-                    {selectedCols.map((col) => (
-                      <th
-                        key={col}
-                        style={{ padding: "8px 10px", textAlign: "left" }}
-                      >
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map((row, i) => (
-                    <tr
-                      key={i}
-                      style={{
-                        background: i % 2 === 0 ? "#f7faff" : "#eef3fb",
-                        color: "#072d4d",
-                      }}
-                    >
-                      {selectedCols.map((col) => (
-                        <td
-                          key={col}
-                          style={{ padding: "8px 10px", verticalAlign: "top" }}
-                        >
-                          {String(row[col] ?? "")}
+                    {SELECTED_COLUMNS.map((col) => {
+                      const tdStyle = col === "Cliente" ? tdCliente : tdBase;
+                      return (
+                        <td key={col} style={tdStyle} title={row[col] ?? ""}>
+                          {row[col] ?? ""}
                         </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </main>
-      </div>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <style>{`
+            @media (max-width: 1200px) {
+              .detalhes-table th, .detalhes-table td { padding: 5px 6px !important; font-size: 10px !important; }
+            }
+            @media (max-width: 800px) {
+              .detalhes-table th, .detalhes-table td { padding: 4px 5px !important; font-size: 9px !important; }
+            }
+            .detalhes-table tbody tr:hover { background: #a7a7a7ff !important; transform: translateY(-1px); transition: all 120ms ease; }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }
-
-const buttonStyle = {
-  padding: "6px 8px",
-  borderRadius: 6,
-  border: "none",
-  background: "#ffe200",
-  color: "#072d4d",
-  cursor: "pointer",
-  fontWeight: 700,
-};

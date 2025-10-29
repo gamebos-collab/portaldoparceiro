@@ -16,8 +16,7 @@ import React, { useEffect, useMemo, useState } from "react";
    Ajuste os nomes conforme as chaves esperadas no localStorage
    ---------------------- */
 const SELECTED_COLUMNS = [
-  "Unidade",
-  "Nr BO",
+  "BO",
   "Nr Ct",
   "Emissão Ct",
   "Ocorrência",
@@ -36,12 +35,11 @@ const SELECTED_COLUMNS = [
    Rótulos exibidos (personalizáveis)
    ---------------------- */
 const DISPLAY_NAMES = {
-  Unidade: "Unidade",
-  "Nr BO": "B.O",
-  "Nr Ct": "Nr CT-e",
+  BO: "B.O",
+  "Nr Ct": "CT-e",
   "Emissão Ct": "Emissão CT",
   Ocorrência: "Ocorrência",
-  Parecer: "Situação",
+  Parecer: "Parecer",
   "Dt Parecer": "Data Parecer",
   "Dias Aberto": "Dias Aberto",
   Resp: "Responsável",
