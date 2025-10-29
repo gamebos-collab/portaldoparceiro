@@ -351,11 +351,17 @@ export default function DetalhesCentralizadora() {
 
   return (
     <div style={containerStyle}>
-      <h2 style={{ marginBottom: 8, textAlign: "center" }}>
+      <h2
+        style={{
+          marginBottom: 5,
+          textAlign: "center",
+          color: "#18304b",
+        }}
+      >
         B.Os da Centralizadora {hoverCentral || centralDefaultName || ""}
       </h2>
 
-      <p style={infoStyle}>{sortedData.length} B.Os carregado do KPI.</p>
+      <p style={infoStyle}>{sortedData.length} B.Os carregados do KPI.</p>
 
       {sortedData.length === 0 ? (
         <div
