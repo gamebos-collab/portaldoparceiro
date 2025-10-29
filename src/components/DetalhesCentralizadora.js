@@ -316,7 +316,7 @@ export default function DetalhesCentralizadora() {
   const thBase = {
     padding: "6px 8px",
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 10,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -328,7 +328,7 @@ export default function DetalhesCentralizadora() {
     whiteSpace: "normal",
     overflowWrap: "break-word",
     wordBreak: "break-word",
-    fontSize: 12,
+    fontSize: 8,
     lineHeight: 1.2,
     textAlign: "center",
   };
