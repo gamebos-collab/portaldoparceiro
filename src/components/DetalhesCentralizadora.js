@@ -304,7 +304,7 @@ export default function DetalhesCentralizadora() {
 
   // styles
   const containerStyle = { padding: 20 };
-  const infoStyle = { color: "#666", marginTop: 0 };
+  const infoStyle = { color: "#666", marginTop: 0, textAlign: "center" };
   const tableContainerStyle = { overflowX: "hidden", marginTop: 12 };
   const tableStyle = {
     width: "100%",
@@ -351,10 +351,11 @@ export default function DetalhesCentralizadora() {
 
   return (
     <div style={containerStyle}>
-      <h2 style={{ marginBottom: 8 }}>
+      <h2 style={{ marginBottom: 8, textAlign: "center" }}>
         B.Os da Centralizadora {hoverCentral || centralDefaultName || ""}
       </h2>
-      <p style={infoStyle}>{sortedData.length} B.O(s) carregado(s) do KPI.</p>
+
+      <p style={infoStyle}>{sortedData.length} B.Os carregado do KPI.</p>
 
       {sortedData.length === 0 ? (
         <div
@@ -437,7 +438,7 @@ export default function DetalhesCentralizadora() {
               .detalhes-table th, .detalhes-table td { padding: 4px 5px !important; font-size: 10px !important; }
             }
             /* hover visual */
-            .detalhes-table tbody tr:hover { filter: brightness(0.98); transform: translateY(-1px); transition: all 120ms ease; }
+            .detalhes-table tbody tr:hover { background: #ffe600ff !important; filter: brightness(0.98); transform: translateY(-5px); transition: all 120ms ease; }
           `}</style>
         </div>
       )}
