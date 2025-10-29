@@ -29,9 +29,7 @@ const SELECTED_COLUMNS = [
   "Vlr NF",
   "Cliente",
   "Notas Fiscais",
-  "Resp CNO - BO",
-  "Faixa",
-  "Criticidade",
+  "Faixa Score",
 ];
 
 /* ----------------------
@@ -51,9 +49,7 @@ const DISPLAY_NAMES = {
   "Vlr NF": "Valor NF",
   Cliente: "Cliente",
   "Notas Fiscais": "Notas Fiscais",
-  "Resp CNO - BO": "Resp CNO",
-  Faixa: "Faixa",
-  Criticidade: "Criticidade",
+  FaixaScore: "Criticidade",
 };
 
 /* ----------------------
