@@ -354,9 +354,7 @@ export default function DetalhesCentralizadora() {
       <h2 style={{ marginBottom: 8 }}>
         B.Os da Centralizadora {hoverCentral || centralDefaultName || ""}
       </h2>
-      <p style={infoStyle}>
-        {sortedData.length} registro(s) carregado(s) do localStorage.
-      </p>
+      <p style={infoStyle}>{sortedData.length} B.O(s) carregado(s) do KPI.</p>
 
       {sortedData.length === 0 ? (
         <div
