@@ -442,7 +442,7 @@ export default function DetalhesCentralizadora() {
               .detalhes-table th, .detalhes-table td { padding: 4px 5px !important; font-size: 10px !important; }
             }
             /* hover visual */
-            .detalhes-table tbody tr:hover { background: #a7a7a7ff !important; filter: brightness(0.98); transform: translateY(-5px); transition: all 120ms ease; }
+            .detalhes-table tbody tr:hover { background: #a7a7a7ff !important; transform: translateY(-1px); transition: all 120ms ease; }
           `}</style>
         </div>
       )}
