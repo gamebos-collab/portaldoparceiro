@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { FaSearch, FaEnvelope, FaPhone, FaMobileAlt } from "react-icons/fa";
+import {
+  FaSearch,
+  FaEnvelope,
+  FaPhone,
+  FaMobileAlt,
+  FaTimes,
+  FaCopy,
+} from "react-icons/fa";
 import "./Contatos.css";
 
 const contatosData = [
@@ -13962,12 +13969,14 @@ const contatosData = [
     __1: "",
     __2: "",
   },
+  // adicione mais contatos conforme necessário
 ];
 
 export default function Contatos() {
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroUF, setFiltroUF] = useState("");
   const [filtroUnidade, setFiltroUnidade] = useState("");
+  const [copied, setCopied] = useState({}); // { rowIndex_field: true }
 
   const contatosFiltrados = contatosData.filter((contato) => {
     return (
@@ -13977,12 +13986,35 @@ export default function Contatos() {
     );
   });
 
+  const clearFilters = () => {
+    setFiltroNome("");
+    setFiltroUF("");
+    setFiltroUnidade("");
+  };
+
+  const copyToClipboard = async (text, key) => {
+    try {
+      await navigator.clipboard.writeText(String(text || ""));
+      setCopied((prev) => ({ ...prev, [key]: true }));
+      setTimeout(() => setCopied((prev) => ({ ...prev, [key]: false })), 1600);
+    } catch (e) {
+      // fallback
+      console.error("Copy failed", e);
+    }
+  };
+
   return (
     <div className="contatos-wrapper">
-      <h2 className="contatos-title">Busca Contatos</h2>
+      <header className="contatos-header">
+        <h2 className="contatos-title">Busca Contatos</h2>
+        <div className="contatos-badge"></div>
+      </header>
+
       <div className="contatos-info">
-        Digite um termo de busca para exibir os resultados.
+        Digite um termo de busca para exibir os resultados. Clique nos ícones
+        para enviar e-mail, ligar ou copiar contato.
       </div>
+
       <div className="contatos-filtros">
         <div className="input-group">
           <FaSearch className="input-icon" />
@@ -13992,7 +14024,17 @@ export default function Contatos() {
             value={filtroNome}
             onChange={(e) => setFiltroNome(e.target.value)}
           />
+          {filtroNome && (
+            <button
+              className="clear-btn"
+              onClick={() => setFiltroNome("")}
+              aria-label="Limpar nome"
+            >
+              <FaTimes />
+            </button>
+          )}
         </div>
+
         <div className="input-group">
           <FaSearch className="input-icon" />
           <input
@@ -14001,7 +14043,17 @@ export default function Contatos() {
             value={filtroUF}
             onChange={(e) => setFiltroUF(e.target.value)}
           />
+          {filtroUF && (
+            <button
+              className="clear-btn"
+              onClick={() => setFiltroUF("")}
+              aria-label="Limpar UF"
+            >
+              <FaTimes />
+            </button>
+          )}
         </div>
+
         <div className="input-group">
           <FaSearch className="input-icon" />
           <input
@@ -14010,8 +14062,24 @@ export default function Contatos() {
             value={filtroUnidade}
             onChange={(e) => setFiltroUnidade(e.target.value)}
           />
+          {filtroUnidade && (
+            <button
+              className="clear-btn"
+              onClick={() => setFiltroUnidade("")}
+              aria-label="Limpar unidade"
+            >
+              <FaTimes />
+            </button>
+          )}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button className="btn-ghost" onClick={clearFilters}>
+            Limpar filtros
+          </button>
         </div>
       </div>
+
       {filtroNome || filtroUF || filtroUnidade ? (
         contatosFiltrados.length > 0 ? (
           <div className="table-responsive">
@@ -14029,27 +14097,86 @@ export default function Contatos() {
               </thead>
               <tbody>
                 {contatosFiltrados.map((contato, index) => (
-                  <tr key={index}>
+                  <tr
+                    key={index}
+                    className="contato-row"
+                    style={{ animationDelay: `${index * 40}ms` }}
+                  >
                     <td>{contato.UNIDADE}</td>
                     <td>{contato.UF}</td>
-                    <td>{contato.Nome}</td>
+                    <td className="nome-col">{contato.Nome}</td>
                     <td>{contato["CARGO/SETOR"]}</td>
                     <td>
-                      <a
-                        href={`mailto:${contato["E-MAIL"]}`}
-                        className="email-link"
-                      >
-                        <FaEnvelope className="table-icon" />
-                        {contato["E-MAIL"]}
-                      </a>
+                      <div className="email-cell">
+                        <a
+                          href={`mailto:${contato["E-MAIL"]}`}
+                          className="email-link"
+                          title={`Enviar e-mail para ${contato["E-MAIL"]}`}
+                        >
+                          <FaEnvelope className="table-icon" />
+                          <span className="email-text">
+                            {contato["E-MAIL"]}
+                          </span>
+                        </a>
+                        <button
+                          className="icon-btn"
+                          onClick={() =>
+                            copyToClipboard(contato["E-MAIL"], `${index}_email`)
+                          }
+                          title="Copiar e-mail"
+                        >
+                          <FaCopy />
+                        </button>
+                        {copied[`${index}_email`] && (
+                          <span className="copied-tooltip">Copiado!</span>
+                        )}
+                      </div>
                     </td>
                     <td>
-                      <FaPhone className="table-icon" />
-                      {contato.FONE}
+                      <div className="phone-cell">
+                        <a
+                          href={`tel:${contato.FONE.replace(/\D/g, "")}`}
+                          title={`Ligar para ${contato.FONE}`}
+                        >
+                          <FaPhone className="table-icon" />
+                          <span>{contato.FONE}</span>
+                        </a>
+                        <button
+                          className="icon-btn"
+                          onClick={() =>
+                            copyToClipboard(contato.FONE, `${index}_fone`)
+                          }
+                          title="Copiar telefone"
+                        >
+                          <FaCopy />
+                        </button>
+                        {copied[`${index}_fone`] && (
+                          <span className="copied-tooltip">Copiado!</span>
+                        )}
+                      </div>
                     </td>
                     <td>
-                      <FaMobileAlt className="table-icon" />
-                      {contato.CELULAR}
+                      <div className="phone-cell">
+                        <a
+                          href={`tel:${contato.CELULAR.replace(/\D/g, "")}`}
+                          title={`Ligar para ${contato.CELULAR}`}
+                        >
+                          <FaMobileAlt className="table-icon" />
+                          <span>{contato.CELULAR}</span>
+                        </a>
+                        <button
+                          className="icon-btn"
+                          onClick={() =>
+                            copyToClipboard(contato.CELULAR, `${index}_cel`)
+                          }
+                          title="Copiar celular"
+                        >
+                          <FaCopy />
+                        </button>
+                        {copied[`${index}_cel`] && (
+                          <span className="copied-tooltip">Copiado!</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -14057,7 +14184,10 @@ export default function Contatos() {
             </table>
           </div>
         ) : (
-          <p className="contatos-msg">Nenhum contato encontrado.</p>
+          <div className="empty-state">
+            <div className="empty-emoji">🔍</div>
+            <p className="contatos-msg">Nenhum contato encontrado.</p>
+          </div>
         )
       ) : null}
     </div>
