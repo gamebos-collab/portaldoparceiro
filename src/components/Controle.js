@@ -138,6 +138,32 @@ const estadoCentralizadoras = {
   Ceará: ["CRA"],
 };
 
+// Mensagens específicas para regiões onde "Centralizadora não atende"
+// Preencha as mensagens desejadas por estado abaixo. Se deixar vazio, será exibida a mensagem padrão.
+const MSGS_CENTRALIZADORA_NAO_ATENDE = {
+  Amazonas: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Acre: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Roraima: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Pará: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Amapá: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Rondônia: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Maranhão: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Tocantins: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  Piauí: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA GRU",
+  "Mato Grosso": "REGIÃO ATENDIDA PELA\nCENTRALIZADORA SAO",
+  "Mato Grosso do Sul": "REGIÃO ATENDIDA PELA\nCENTRALIZADORA SAO",
+  "Rio de Janeiro": "REGIÃO ATENDIDA PELA\nCENTRALIZADORA SAO",
+  Goiás: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  "Distrito Federal": "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  "Rio Grande do Norte": "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  Paraíba: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  Pernambuco: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  Alagoas: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  Sergipe: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  Bahia: "REGIÃO ATENDIDA PELA\nCENTRALIZADORA CPN",
+  // ...outras mensagens
+  default: "Centralizadora não atende",
+};
 // Gerentes regionais (exemplo)
 const gerentesRegionais = {
   CXS: {
@@ -151,9 +177,9 @@ const gerentesRegionais = {
     telefone: "55 (51) 99459-2562",
   },
   SMA: {
-    nome: "Reginaldo Petry",
-    email: "reginaldo.petry@translovato.com.br",
-    telefone: "55 (55) 99905-5949",
+    nome: "Alexandre Azambuja",
+    email: "alexandre.tavares@translovato.com.br",
+    telefone: "55 (51) 99459-2562",
   },
   BLU: {
     nome: "Alessandro Cordero",
@@ -1227,9 +1253,12 @@ export default function Home() {
                   fontWeight: "bold",
                   margin: "36px 0 36px 0",
                   fontSize: "1.15rem",
+                  whiteSpace: "pre-line", // <-- faz a quebra no '\n'
                 }}
               >
-                Centralizadora não atende
+                {/* Exibe mensagem específica por região quando não houver centralizadora */}
+                {MSGS_CENTRALIZADORA_NAO_ATENDE[estadoSelecionado] ||
+                  MSGS_CENTRALIZADORA_NAO_ATENDE.default}
               </div>
             ) : (
               <>
@@ -1247,7 +1276,12 @@ export default function Home() {
                 </div>
               </>
             )}
-            <p className="popup-esc">Pressione ESC para fechar</p>
+            <p
+              className="popup-esc"
+              style={{ textAlign: "center", marginTop: 16, fontSize: "0.9rem" }}
+            >
+              Pressione ESC para fechar
+            </p>
           </div>
         </div>
       );
@@ -1486,6 +1520,7 @@ export default function Home() {
                 textAlign: "center",
                 fontSize: "0.9rem",
                 color: "#ffffffff",
+                textAlign: "center",
               }}
             >
               Pressione ESC para fechar
