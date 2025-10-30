@@ -483,11 +483,11 @@ export default function Bbmassist() {
 
       <aside className="bbm-right">
         <div className="bbm-right-card">
-          <h4>Sobre o BBM Assist</h4>
+          <h4>BBM Assist</h4>
           <p>
-            BBM Assist é a inteligência artificial da empresa — capaz de ajudar
-            em buscas, análises e envio de respostas. Envie arquivos (PDF ou
-            imagens) para que eu analise.
+            BBM Assist é a inteligência artificial capaz de ajudar em análises
+            de B.Os através do batepapo de envio de perguntas e respostas. Envie
+            arquivos PDF, imagens e texto para que eu analise.
           </p>
           <dl>
             <dt>Suporta:</dt>
