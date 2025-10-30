@@ -1,444 +1,515 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  FaSearch,
-  FaEnvelope,
-  FaPhone,
-  FaMobileAlt,
-  FaStar,
-  FaUsers,
-  FaBuilding,
-  FaRegSmile,
-  FaMoon,
-  FaSun,
-  FaRegCopy,
+  FaPaperPlane,
+  FaPaperclip,
+  FaImage,
+  FaFilePdf,
+  FaSmile,
+  FaTrashAlt,
+  FaSpinner,
+  FaUserCircle,
 } from "react-icons/fa";
 import "./Bbmassist.css";
 
 /**
- * ContatosTeams - Interface estilo "Microsoft Teams"
+ * Bbmassist Chat (UI inspirado no Microsoft Teams)
  *
- * Arquivo ajustado e pronto para colar:
- * - corrigi o import do CSS (ContatosTeams.css)
- * - adicionei ação de copiar com feedback não intrusivo (toast)
- * - pequenas melhorias de acessibilidade (aria-labels)
+ * Recursos implementados:
+ * - Janela de conversa com cabeçalho (BBM Assist), histórico de mensagens
+ * - Enviar mensagens de texto
+ * - Enviar arquivos: imagens (preview in-line) e PDFs (link / thumbnail)
+ * - Drag & drop de arquivos sobre a área de mensagem
+ * - Rascunho persistido no localStorage (por aba)
+ * - Simulação de resposta da IA (com "digitando..." e resposta por setTimeout) — substitua pela sua API
+ * - Acessibilidade básica e visual fiel à paleta azul/amarelo já usada no projeto
  *
- * Substitua/adicione também o arquivo ContatosTeams.css (se ainda não estiver).
+ * Uso: cole como src/pages/Bbmassist.js e o CSS (arquivo abaixo) como src/pages/Bbmassist.css
  */
 
-// Exemplo de dados — substitua/importe conforme sua fonte real
-const contatosData = [
-  {
-    UNIDADE: "BAU",
-    UF: "SP",
-    Nome: "Marco Roberto Alves da Silva",
-    "CARGO/SETOR": "Gerência",
-    "E-MAIL": "marco.silva@translovato.com.br",
-    FONE: "(14) 3312-2632",
-    CELULAR: "14 99829-8791",
-    OBS: "Responsável por operações na região Sul do estado.",
-  },
-  {
-    UNIDADE: "BAU",
-    UF: "SP",
-    Nome: "Ana Flavia P. Gonçalves Maia",
-    "CARGO/SETOR": "Coordenador Adm",
-    "E-MAIL": "flavia.maia@translovato.com.br",
-    FONE: "(14) 3312-2621",
-    CELULAR: "14 99760-4634",
-    OBS: "Atendimento administrativo e suporte local.",
-  },
-  {
-    UNIDADE: "CXS",
-    UF: "RS",
-    Nome: "João Pedro Santos",
-    "CARGO/SETOR": "Supervisor",
-    "E-MAIL": "joao.santos@translovato.com.br",
-    FONE: "(51) 3344-2200",
-    CELULAR: "51 99988-7766",
-    OBS: "Supervisor de rota - atende POA e região metropolitana.",
-  },
-  {
-    UNIDADE: "POA",
-    UF: "RS",
-    Nome: "Mariana Lopes",
-    "CARGO/SETOR": "Analista",
-    "E-MAIL": "mariana.lopes@translovato.com.br",
-    FONE: "(51) 3344-2211",
-    CELULAR: "51 98877-6655",
-    OBS: "Contato para questões de faturamento.",
-  },
-];
+const STORAGE_KEY = "bbmassist_chat_history_v1";
 
-// Helper: cria iniciais para avatar
-const initials = (name) => {
-  if (!name) return "";
-  const parts = name.split(" ").filter(Boolean);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-};
+function formatTime(ts = Date.now()) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
 
-// Helper: cor randômica consistente por string (para avatar color)
-const stringToColor = (s) => {
-  if (!s) return "#445"; // fallback
-  let hash = 0;
-  for (let i = 0; i < s.length; i++)
-    hash = s.charCodeAt(i) + ((hash << 5) - hash);
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue} 60% 50%)`;
-};
+function makeId() {
+  return Math.random().toString(36).slice(2, 9);
+}
 
-export default function ContatosTeams() {
-  const [query, setQuery] = useState("");
-  const [filterUF, setFilterUF] = useState("");
-  const [filterUnidade, setFilterUnidade] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [favorite, setFavorite] = useState({}); // map nome -> true
-  const [dark, setDark] = useState(false);
-  const [toast, setToast] = useState(null);
-
-  // valores distintos para filtros
-  const ufs = useMemo(() => [...new Set(contatosData.map((c) => c.UF))], []);
-  const unidades = useMemo(
-    () => [...new Set(contatosData.map((c) => c.UNIDADE))],
-    []
-  );
-
-  // pesquisa simples
-  const resultados = useMemo(() => {
-    const q = (query || "").toLowerCase().trim();
-    return contatosData
-      .filter((c) => (filterUF ? c.UF === filterUF : true))
-      .filter((c) => (filterUnidade ? c.UNIDADE === filterUnidade : true))
-      .filter((c) => {
-        if (!q) return true;
-        return (
-          c.Nome.toLowerCase().includes(q) ||
-          (c["CARGO/SETOR"] || "").toLowerCase().includes(q) ||
-          (c["E-MAIL"] || "").toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => {
-        // favoritos no topo
-        const fa = favorite[a.Nome] ? 0 : 1;
-        const fb = favorite[b.Nome] ? 0 : 1;
-        if (fa !== fb) return fa - fb;
-        return a.Nome.localeCompare(b.Nome);
-      });
-  }, [query, filterUF, filterUnidade, favorite]);
-
-  const toggleFav = (nome) => {
-    setFavorite((p) => ({ ...p, [nome]: !p[nome] }));
-  };
-
-  // actions
-  const handleCall = (phone) => {
+export default function Bbmassist() {
+  const [messages, setMessages] = useState(() => {
     try {
-      window.location.href = `tel:${phone.replace(/\D/g, "")}`;
-    } catch {
-      // ignore
-    }
-  };
-  const handleMail = (email) => {
-    try {
-      window.location.href = `mailto:${email}`;
-    } catch {
-      // ignore
-    }
-  };
-  const handleCopy = async (text, label = "Texto copiado") => {
-    try {
-      await navigator.clipboard.writeText(String(text || ""));
-      setToast(label);
-    } catch {
-      setToast("Falha ao copiar");
-    }
-  };
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    // seed: welcome from assistant
+    return [
+      {
+        id: makeId(),
+        role: "assistant",
+        text: "Olá! Eu sou o BBM Assist — como posso ajudar hoje? Você pode enviar texto, PDFs ou imagens.",
+        time: Date.now(),
+        attachments: [],
+      },
+    ];
+  });
 
-  // auto-hide toast
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
   useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 1600);
-    return () => clearTimeout(t);
-  }, [toast]);
+    // persist chat
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {}
+    // scroll to bottom on update
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    // keyboard shortcut: Ctrl+Enter to send
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        handleSend();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [input]);
+
+  const pushMessage = (msg) => {
+    setMessages((cur) => [...cur, msg]);
+  };
+
+  const simulateAssistantReply = (userText, attachments = []) => {
+    setIsTyping(true);
+    // simulate "thinking/typing" time based on length
+    const delay = Math.min(2200 + userText.length * 20, 6000);
+
+    setTimeout(() => {
+      // simple echo + metadata; replace with API call to AI
+      const replyText = generateAssistantReply(userText, attachments);
+      pushMessage({
+        id: makeId(),
+        role: "assistant",
+        text: replyText,
+        time: Date.now(),
+        attachments: [],
+      });
+      setIsTyping(false);
+    }, delay);
+  };
+
+  const generateAssistantReply = (userText, attachments) => {
+    // Basic simulated reply; customize or replace with real AI integration.
+    let r = "";
+    if (attachments && attachments.length) {
+      const types = attachments.map((a) => a.type).join(", ");
+      r += `Recebi ${attachments.length} anexo(s) (${types}). `;
+    }
+    if (userText && userText.trim()) {
+      r += `Você escreveu: "${userText.trim().slice(0, 240)}". `;
+    }
+    r +=
+      "Posso procurar informações, gerar relatórios e anexar links úteis. Quer que eu envie um resumo por e-mail ou deseja continuar aqui?";
+    return r;
+  };
+
+  const handleSend = async () => {
+    const text = input.trim();
+    if (!text) return;
+    const msg = {
+      id: makeId(),
+      role: "user",
+      text,
+      time: Date.now(),
+      attachments: [],
+    };
+    pushMessage(msg);
+    setInput("");
+    simulateAssistantReply(text, []);
+  };
+
+  const handleFiles = (fileList) => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    setUploading(true);
+
+    // process files (image preview or pdf blob)
+    const processed = files.map((file) => {
+      const isImage = file.type.startsWith("image/");
+      const isPdf =
+        file.type === "application/pdf" ||
+        file.name.toLowerCase().endsWith(".pdf");
+      const id = makeId();
+      const url = URL.createObjectURL(file);
+      return {
+        id,
+        name: file.name,
+        size: file.size,
+        type: isImage ? "image" : isPdf ? "pdf" : "file",
+        file,
+        url,
+      };
+    });
+
+    // create a user message containing attachments
+    const msg = {
+      id: makeId(),
+      role: "user",
+      text:
+        processed.length === 1 && !input
+          ? `Enviei: ${processed[0].name}`
+          : input.trim() || "",
+      time: Date.now(),
+      attachments: processed,
+    };
+    pushMessage(msg);
+    setInput("");
+    setUploading(false);
+
+    // simulate assistant reading attachments
+    simulateAssistantReply(msg.text, processed);
+  };
+
+  const onDrop = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    setDragOver(false);
+    const dt = ev.dataTransfer;
+    if (dt && dt.files && dt.files.length) {
+      handleFiles(dt.files);
+    }
+  };
+
+  const onDragOver = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    setDragOver(true);
+  };
+
+  const onDragLeave = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    setDragOver(false);
+  };
+
+  const handlePickFile = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileInputChange = (ev) => {
+    const files = ev.target.files;
+    if (files && files.length) {
+      handleFiles(files);
+    }
+    // reset so same file can be picked again
+    ev.target.value = "";
+  };
+
+  const handleClearConversation = () => {
+    if (!window.confirm("Limpar todo o histórico de conversa?")) return;
+    setMessages([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+  };
+
+  const removeAttachmentFromMessage = (msgId, attId) => {
+    setMessages((cur) =>
+      cur.map((m) =>
+        m.id === msgId
+          ? { ...m, attachments: m.attachments.filter((a) => a.id !== attId) }
+          : m
+      )
+    );
+  };
+
+  const renderAttachment = (att) => {
+    if (att.type === "image") {
+      return (
+        <div className="bbm-attachment-image" key={att.id}>
+          <img src={att.url} alt={att.name} />
+          <div className="bbm-attachment-meta">
+            <div className="bbm-attachment-name">{att.name}</div>
+            <a
+              href={att.url}
+              download={att.name}
+              className="bbm-attachment-download"
+            >
+              Baixar
+            </a>
+          </div>
+        </div>
+      );
+    }
+    if (att.type === "pdf") {
+      return (
+        <div className="bbm-attachment-file" key={att.id}>
+          <div className="pdf-icon">
+            <FaFilePdf />
+          </div>
+          <div className="bbm-attachment-meta">
+            <div className="bbm-attachment-name">{att.name}</div>
+            <a
+              href={att.url}
+              target="_blank"
+              rel="noreferrer"
+              className="bbm-attachment-download"
+            >
+              Abrir
+            </a>
+          </div>
+        </div>
+      );
+    }
+    // generic fallback
+    return (
+      <div className="bbm-attachment-file" key={att.id}>
+        <div className="pdf-icon">📎</div>
+        <div className="bbm-attachment-meta">
+          <div className="bbm-attachment-name">{att.name}</div>
+          <a
+            href={att.url}
+            download={att.name}
+            className="bbm-attachment-download"
+          >
+            Baixar
+          </a>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div
-      className={`teams-wrap ${dark ? "dark" : ""}`}
-      data-theme={dark ? "dark" : "light"}
-    >
-      {/* Toast */}
-      {toast && (
-        <div className="ct-toast" role="status">
-          {toast}
+    <div className="bbmassist-page">
+      <aside className="bbm-left">
+        <div className="bbm-left-header">
+          <div className="bbm-left-title">BBM Assist</div>
+          <div className="bbm-left-sub">Assistente Inteligente</div>
         </div>
-      )}
 
-      {/* LEFT: Sidebar */}
-      <aside className="teams-sidebar" aria-label="Navegação">
-        <div className="teams-brand">
-          <div className="teams-logo" aria-hidden>
-            T
-          </div>
-          <div className="teams-title">
-            KPI Parceiro
-            <div className="teams-sub">Contatos</div>
+        <div className="bbm-conversations">
+          <div className="conv-item active">
+            <div className="conv-avatar">
+              <FaUserCircle />
+            </div>
+            <div className="conv-meta">
+              <div className="conv-name">BBM Assist</div>
+              <div className="conv-last">
+                Estou aqui para ajudar — clique e mande sua pergunta.
+              </div>
+            </div>
           </div>
         </div>
 
-        <nav className="teams-nav" aria-label="Menu principal">
-          <button className="nav-item active" aria-pressed="true">
-            <FaUsers aria-hidden /> Equipe
-          </button>
-          <button className="nav-item" aria-pressed="false">
-            <FaStar aria-hidden /> Favoritos
-          </button>
-          <button className="nav-item" aria-pressed="false">
-            <FaBuilding aria-hidden /> Unidades
-          </button>
-        </nav>
-
-        <div className="teams-footer">
+        <div className="bbm-left-footer">
           <button
-            className="theme-toggle"
-            onClick={() => setDark((d) => !d)}
-            title="Alternar tema"
-            aria-label="Alternar tema"
+            className="btn-ghost"
+            onClick={handleClearConversation}
+            title="Limpar conversa"
           >
-            {dark ? <FaSun /> : <FaMoon />}
+            <FaTrashAlt /> Limpar conversa
           </button>
-          <div className="help-chip" role="button" tabIndex={0}>
-            <FaRegSmile /> Ajuda
-          </div>
         </div>
       </aside>
 
-      {/* CENTER: Lista de contatos */}
-      <main className="teams-main" aria-live="polite">
-        <div className="teams-searchbar">
-          <div className="search-left">
-            <FaSearch className="search-icon" aria-hidden />
-            <input
-              aria-label="Pesquisar contatos"
-              placeholder="Pesquisar por nome, cargo ou e-mail"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {query && (
-              <button
-                className="clear-query"
-                onClick={() => setQuery("")}
-                title="Limpar pesquisa"
-                aria-label="Limpar pesquisa"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          <div className="filters-right">
-            <select
-              aria-label="Filtrar por UF"
-              value={filterUF}
-              onChange={(e) => setFilterUF(e.target.value)}
-            >
-              <option value="">Todas UFs</option>
-              {ufs.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-
-            <select
-              aria-label="Filtrar por Unidade"
-              value={filterUnidade}
-              onChange={(e) => setFilterUnidade(e.target.value)}
-            >
-              <option value="">Todas Unidades</option>
-              {unidades.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="teams-list" role="list">
-          {resultados.length === 0 ? (
-            <div className="teams-empty">
-              <div className="teams-empty-emoji" aria-hidden>
-                🔍
+      <section
+        className={`bbm-chat ${dragOver ? "drag-over" : ""}`}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+      >
+        <header className="bbm-chat-header">
+          <div className="assistant-info">
+            <div className="assistant-avatar">BB</div>
+            <div>
+              <div className="assistant-name">BBM Assist</div>
+              <div className="assistant-status">
+                {isTyping ? "Digitando..." : "Online"}
               </div>
-              <div className="teams-empty-text">Nenhum contato encontrado</div>
             </div>
-          ) : (
-            resultados.map((c, i) => (
-              <div
-                key={c.Nome + i}
-                className={`contact-card ${
-                  selected && selected.Nome === c.Nome ? "selected" : ""
-                }`}
-                onClick={() => setSelected(c)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && setSelected(c)}
-                style={{ animationDelay: `${i * 45}ms` }}
-                title={`${c.Nome} — ${c["CARGO/SETOR"]}`}
-                aria-label={`Contato ${c.Nome}`}
-              >
-                <div
-                  className="avatar"
-                  style={{ backgroundColor: stringToColor(c.Nome) }}
-                  aria-hidden
-                >
-                  {initials(c.Nome)}
-                </div>
-                <div className="contact-meta">
-                  <div className="contact-top">
-                    <div className="contact-name">{c.Nome}</div>
-                    <div className="contact-unidade" aria-hidden>
-                      {c.UNIDADE}
+          </div>
+
+          <div className="header-actions">
+            <button
+              className="icon-btn"
+              onClick={() => alert("Compartilhar conversa (em breve)")}
+            >
+              Compartilhar
+            </button>
+          </div>
+        </header>
+
+        <div className="bbm-messages" aria-live="polite">
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={`bbm-message ${
+                m.role === "user" ? "from-user" : "from-assistant"
+              }`}
+            >
+              <div className="msg-avatar" aria-hidden>
+                {m.role === "user" ? (
+                  <div className="avatar-user">EU</div>
+                ) : (
+                  <div className="avatar-assistant">BB</div>
+                )}
+              </div>
+
+              <div className="msg-body">
+                <div className="msg-bubble">
+                  {m.text && <div className="msg-text">{m.text}</div>}
+
+                  {m.attachments && m.attachments.length > 0 && (
+                    <div className="msg-attachments">
+                      {m.attachments.map((att) => (
+                        <div key={att.id} className="msg-attachment">
+                          {renderAttachment(att)}
+                        </div>
+                      ))}
                     </div>
+                  )}
+                  <div className="msg-meta">
+                    <span className="msg-time">{formatTime(m.time)}</span>
+                    <button
+                      className="small-icon"
+                      title="Remover anexo"
+                      onClick={() => {
+                        // remove the first attachment in the message (example)
+                        if (m.attachments && m.attachments.length)
+                          removeAttachmentFromMessage(
+                            m.id,
+                            m.attachments[0].id
+                          );
+                      }}
+                      aria-hidden
+                    >
+                      <FaTrashAlt />
+                    </button>
                   </div>
-                  <div className="contact-bottom">
-                    <div className="contact-role">{c["CARGO/SETOR"]}</div>
-                    <div className="contact-uf" aria-hidden>
-                      {c.UF}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="contact-actions" aria-hidden>
-                  <button
-                    className={`fav-btn ${favorite[c.Nome] ? "fav" : ""}`}
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      toggleFav(c.Nome);
-                    }}
-                    title="Favoritar"
-                    aria-label={`Favoritar ${c.Nome}`}
-                  >
-                    <FaStar />
-                  </button>
-
-                  <button
-                    className="action"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      handleMail(c["E-MAIL"]);
-                    }}
-                    title="Enviar e-mail"
-                    aria-label={`Enviar e-mail para ${c["E-MAIL"]}`}
-                  >
-                    <FaEnvelope />
-                  </button>
-
-                  <button
-                    className="action"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      handleCall(c.CELULAR);
-                    }}
-                    title="Ligar"
-                    aria-label={`Ligar para ${c.CELULAR}`}
-                  >
-                    <FaPhone />
-                  </button>
-
-                  <button
-                    className="action copy-btn"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      handleCopy(c["E-MAIL"], "E-mail copiado");
-                    }}
-                    title="Copiar e-mail"
-                    aria-label={`Copiar e-mail ${c["E-MAIL"]}`}
-                  >
-                    <FaRegCopy />
-                  </button>
                 </div>
               </div>
-            ))
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="bbm-message from-assistant typing">
+              <div className="msg-avatar">
+                <div className="avatar-assistant">BB</div>
+              </div>
+              <div className="msg-body">
+                <div className="msg-bubble">
+                  <div className="typing-dots" aria-hidden>
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
+
+          <div ref={messagesEndRef} />
         </div>
-      </main>
 
-      {/* RIGHT: Detalhes do contato */}
-      <aside className="teams-details" aria-label="Detalhes do contato">
-        {selected ? (
-          <div className="details-card">
-            <div className="details-top">
-              <div
-                className="avatar-large"
-                style={{ backgroundColor: stringToColor(selected.Nome) }}
-                aria-hidden
-              >
-                {initials(selected.Nome)}
-              </div>
-              <div className="details-meta">
-                <h3>{selected.Nome}</h3>
-                <div className="details-role">{selected["CARGO/SETOR"]}</div>
-                <div className="details-sub">
-                  {selected.UNIDADE} • {selected.UF}
-                </div>
-              </div>
-            </div>
+        <footer className="bbm-composer">
+          <div className="composer-actions">
+            <button
+              className="composer-btn"
+              onClick={handlePickFile}
+              title="Anexar arquivo (imagens / pdf)"
+            >
+              <FaPaperclip /> <span className="composer-label">Anexar</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              multiple
+              style={{ display: "none" }}
+              onChange={handleFileInputChange}
+            />
+            <button
+              className="composer-btn"
+              onClick={() => {
+                // quick insert example image (demo)
+                alert(
+                  "Inserir imagem de demo (use anexar para enviar arquivos reais)."
+                );
+              }}
+              title="Inserir exemplo"
+            >
+              <FaImage /> <span className="composer-label">Imagem</span>
+            </button>
+          </div>
 
-            <div className="details-actions">
+          <div className="composer-input-wrap">
+            <textarea
+              aria-label="Escreva sua mensagem"
+              placeholder="Escreva uma mensagem para o BBM Assist (Ctrl/Cmd+Enter para enviar)…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                  handleSend();
+                }
+              }}
+            />
+            <div className="composer-actions-right">
               <button
-                onClick={() => handleMail(selected["E-MAIL"])}
-                className="primary"
-                aria-label={`Enviar email para ${selected["E-MAIL"]}`}
+                className="send-btn"
+                onClick={handleSend}
+                title="Enviar (Ctrl/Cmd+Enter)"
+                aria-label="Enviar mensagem"
+                disabled={!input.trim() && !uploading}
               >
-                <FaEnvelope /> Enviar e-mail
+                {uploading ? <FaSpinner className="spin" /> : <FaPaperPlane />}
               </button>
-              <button
-                onClick={() => handleCall(selected.CELULAR)}
-                className="outline"
-                aria-label={`Ligar para ${selected.CELULAR}`}
-              >
-                <FaMobileAlt /> Ligar (celular)
-              </button>
-              <button
-                onClick={() => handleCall(selected.FONE)}
-                className="outline"
-                aria-label={`Ligar para ${selected.FONE}`}
-              >
-                <FaPhone /> Ligar (fixo)
-              </button>
-            </div>
-
-            <div className="details-info" aria-live="polite">
-              <div className="info-row">
-                <div className="label">E-mail</div>
-                <div className="value">{selected["E-MAIL"]}</div>
-              </div>
-              <div className="info-row">
-                <div className="label">Telefone</div>
-                <div className="value">{selected.FONE}</div>
-              </div>
-              <div className="info-row">
-                <div className="label">Celular</div>
-                <div className="value">{selected.CELULAR}</div>
-              </div>
-              <div className="info-row">
-                <div className="label">Observações</div>
-                <div className="value">{selected.OBS || "—"}</div>
-              </div>
             </div>
           </div>
-        ) : (
-          <div className="details-empty">
-            <div className="empty-illustr" aria-hidden>
-              👥
-            </div>
-            <div className="empty-title">Selecione um contato</div>
-            <div className="empty-sub">
-              Clique em qualquer contato para ver os detalhes aqui.
-            </div>
+        </footer>
+      </section>
+
+      <aside className="bbm-right">
+        <div className="bbm-right-card">
+          <h4>Sobre o BBM Assist</h4>
+          <p>
+            BBM Assist é a inteligência artificial da empresa — capaz de ajudar
+            em buscas, análises e envio de respostas. Envie arquivos (PDF ou
+            imagens) para que eu analise.
+          </p>
+          <dl>
+            <dt>Suporta:</dt>
+            <dd>Mensagens de texto, imagens (jpg/png) e PDFs</dd>
+            <dt>Atalhos:</dt>
+            <dd>Ctrl/Cmd + Enter para enviar</dd>
+          </dl>
+          <div className="bbm-right-actions">
+            <button
+              className="btn-primary"
+              onClick={() => alert("Instruções rápidas: escreva e envie.")}
+            >
+              Como usar
+            </button>
+            <button
+              className="btn-ghost"
+              onClick={() => alert("Exportar conversa (em breve)")}
+            >
+              Exportar
+            </button>
           </div>
-        )}
+        </div>
       </aside>
     </div>
   );
