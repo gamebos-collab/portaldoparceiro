@@ -130,3 +130,163 @@
   text-decoration: none;
   font-weight: bold;
 }
+
+/* Header.css - adicione estas regras ao seu Header.css existente (ou substitua) */
+/* Estilos existentes do header devem permanecer; aqui adicionamos estilos para o botão BBM Assist (FAB) */
+
+/* ===== existing header styles (keep your existing rules) ===== */
+/* ... (se já existir conteúdo em Header.css, mantenha-o) */
+
+/* ===== BBM Assist Floating Action Button (FAB) ===== */
+.bbmassist-fab {
+  position: fixed;
+  right: 12px; /* colado à margem direita */
+  top: 12%; /* central verticalmente */
+  transform: translateY(-10%);
+  width: 54px;
+  height: 54px;
+  padding: 6px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  z-index: 1500; /* acima dos outros elementos */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 163, 255, 0.12),
+    rgba(2, 60, 185, 0.06)
+  );
+  box-shadow: 0 10px 30px rgba(2, 60, 185, 0.12), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+  backdrop-filter: blur(6px);
+}
+
+/* Slight elevation on hover and focus */
+.bbmassist-fab:hover,
+.bbmassist-fab:focus {
+  transform: translateY(-10%) scale(1.04);
+  box-shadow: 0 18px 48px rgba(2, 60, 185, 0.18), 0 6px 14px rgba(0, 0, 0, 0.14);
+  outline: none;
+}
+
+/* Pressed effect */
+.bbmassist-fab:active {
+  transform: translateY(-10%) scale(1);
+}
+
+/* Image inside the FAB */
+.bbmassist-img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  transition: transform 220ms ease;
+}
+
+/* subtle zoom of image on hover */
+.bbmassist-fab:hover .bbmassist-img {
+  transform: scale(1.2);
+}
+
+/* decorative animated glow/pulse */
+.bbmassist-glow {
+  position: absolute;
+  width: 126px;
+  height: 126px;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  border-radius: 18px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(0, 163, 255, 0.14),
+    rgba(2, 60, 185, 0.06) 40%,
+    transparent 60%
+  );
+  filter: blur(8px);
+  opacity: 0.85;
+  transition: opacity 180ms ease;
+}
+
+/* animated sparkles (pseudo elements) */
+.bbmassist-fab::before,
+.bbmassist-fab::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+.bbmassist-fab::before {
+  width: 10px;
+  height: 10px;
+  right: 8px;
+  top: 6px;
+  background: linear-gradient(90deg, #00a3ff, #6a49ff);
+  transform: rotate(20deg);
+  box-shadow: 0 6px 20px rgba(106, 73, 255, 0.22);
+  animation: bbm-spark 2000ms infinite ease-in-out;
+}
+.bbmassist-fab::after {
+  width: 6px;
+  height: 6px;
+  right: 20px;
+  bottom: 12px;
+  background: linear-gradient(90deg, #00a3ff, #6a49ff);
+  box-shadow: 0 6px 16px rgba(0, 163, 255, 0.16);
+  animation: bbm-spark 2500ms infinite ease-in-out reverse;
+}
+
+@keyframes bbm-spark {
+  0% {
+    transform: translateY(0) scale(0.9);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.05);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-8px) scale(1.1);
+  }
+  90% {
+    opacity: 0.2;
+    transform: translateY(-2px) scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(0.9);
+  }
+}
+
+/* Responsive: menor espaço em telas pequenas */
+@media (max-width: 900px) {
+  .bbmassist-fab {
+    right: 14px;
+    bottom: 16px;
+    top: auto;
+    transform: none;
+    width: 78px;
+    height: 78px;
+    border-radius: 14px;
+  }
+  .bbmassist-img {
+    width: 68px;
+    height: 68px;
+  }
+  .bbmassist-glow {
+    display: none;
+  }
+  .bbmassist-fab::before,
+  .bbmassist-fab::after {
+    display: none;
+  }
+}
+
+/* If you need the FAB to NOT overlap important header content, you can add padding-right to the main page container:
+   .main-content { padding-right: 140px; } */

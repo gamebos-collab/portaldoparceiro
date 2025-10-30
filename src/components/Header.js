@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "./Header.css";
+import bbmLogo from "../assets/bbm-assist.jpg"; // coloque a imagem anexada em src/assets/bbm-assist.png
 
 export default function Header() {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -10,30 +11,20 @@ export default function Header() {
   const { usuarioLogado, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Monitoramento agora aponta para a página correta
+  // Menu principal ajustado conforme especificado (sem o item de BBM Assist - agora é o botão flutuante)
   const menuItems = [
     {
       label: "Monitoramento",
-      to: "/monitoramento",
+      to: "/", // Home, exibido com o rótulo "Monitoramento"
     },
     {
       label: "Controle",
       to: "/controle",
     },
-  ];
-
-  if (usuarioLogado) {
-    menuItems.push({
-      label: "Dashboard",
-      to: "/", // Home é o Dashboard agora
-    });
-  }
-
-  menuItems.push(
     {
       label: "Comunicação",
       submenu: [
-        { label: "Notícias e Comunicado", to: "/comunicacao/noticias" },
+        { label: "Noticias e Comunicados", to: "/comunicacao/noticias" },
         { label: "Contatos", to: "/comunicacao/contatos" },
       ],
     },
@@ -47,80 +38,96 @@ export default function Header() {
     },
     {
       label: "Institucional",
-      submenu: [
-        { label: "Sobre o Portal", to: "/institucional/sobre" },
-        { label: "Quem Somos", to: "/institucional/quemsomos" },
-      ],
-    }
-  );
+      to: "/Sobre", // abre a página "Sobre" diretamente (sem submenu)
+    },
+  ];
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
+  const handleOpenBbmassist = () => {
+    // abre a rota do BBM Assist - ajuste a rota se necessário
+    navigate("/Bbmassist");
+  };
+
   return (
-    <header className="header">
-      <nav className="nav-bar">
-        <ul className="menu">
-          {menuItems.map((item, idx) => (
-            <li
-              key={item.label}
-              className={`menu-item${hoveredMenu === idx ? " hovered" : ""}`}
-              onMouseEnter={() => {
-                if (item.submenu) setOpenDropdown(idx);
-                setHoveredMenu(idx);
-              }}
-              onMouseLeave={() => {
-                if (item.submenu) setOpenDropdown(null);
-                setHoveredMenu(null);
-              }}
-              style={{ position: "relative" }}
-            >
-              {/* Se for menu com link direto */}
-              {item.to ? (
-                <Link
-                  to={item.to}
-                  className="menu-link"
-                  onClick={() => setOpenDropdown(null)}
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <span className="menu-link">{item.label}</span>
-              )}
-              {/* Se for menu com submenu */}
-              {item.submenu && openDropdown === idx && (
-                <ul className="submenu">
-                  {item.submenu.map((sub, subIdx) => (
-                    <li
-                      key={sub.label}
-                      className={`submenu-item${
-                        hoveredSubmenu === subIdx ? " hovered" : ""
-                      }`}
-                      onMouseEnter={() => setHoveredSubmenu(subIdx)}
-                      onMouseLeave={() => setHoveredSubmenu(null)}
-                    >
-                      <Link
-                        to={sub.to}
-                        className="submenu-link"
-                        onClick={() => setOpenDropdown(null)}
+    <>
+      <header className="header">
+        <nav className="nav-bar">
+          <ul className="menu">
+            {menuItems.map((item, idx) => (
+              <li
+                key={item.label}
+                className={`menu-item${hoveredMenu === idx ? " hovered" : ""}`}
+                onMouseEnter={() => {
+                  if (item.submenu) setOpenDropdown(idx);
+                  setHoveredMenu(idx);
+                }}
+                onMouseLeave={() => {
+                  if (item.submenu) setOpenDropdown(null);
+                  setHoveredMenu(null);
+                }}
+                style={{ position: "relative" }}
+              >
+                {/* Se for menu com link direto */}
+                {item.to ? (
+                  <Link
+                    to={item.to}
+                    className="menu-link"
+                    onClick={() => setOpenDropdown(null)}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span className="menu-link">{item.label}</span>
+                )}
+                {/* Se for menu com submenu */}
+                {item.submenu && openDropdown === idx && (
+                  <ul className="submenu">
+                    {item.submenu.map((sub, subIdx) => (
+                      <li
+                        key={sub.label}
+                        className={`submenu-item${
+                          hoveredSubmenu === subIdx ? " hovered" : ""
+                        }`}
+                        onMouseEnter={() => setHoveredSubmenu(subIdx)}
+                        onMouseLeave={() => setHoveredSubmenu(null)}
                       >
-                        {sub.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
-        {usuarioLogado && (
-          <button className="logout-button" onClick={handleLogout}>
-            Sair
-          </button>
-        )}
-      </nav>
-    </header>
+                        <Link
+                          to={sub.to}
+                          className="submenu-link"
+                          onClick={() => setOpenDropdown(null)}
+                        >
+                          {sub.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {usuarioLogado && (
+            <button className="logout-button" onClick={handleLogout}>
+              Sair
+            </button>
+          )}
+        </nav>
+      </header>
+
+      {/* BBM Assist Floating Button - colado à margem direita da página */}
+      <button
+        className="bbmassist-fab"
+        onClick={handleOpenBbmassist}
+        aria-label="BBM Assist"
+        title="BBM Assist"
+      >
+        <img src={bbmLogo} alt="BBM Assist" className="bbmassist-img" />
+        <span className="bbmassist-glow" aria-hidden />
+      </button>
+    </>
   );
 }

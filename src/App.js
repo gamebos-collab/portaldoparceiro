@@ -9,9 +9,9 @@ import Noticias from "./pages/Noticias";
 import Politicadeparceiros from "./pages/Politicadeparceiros";
 import Documentos from "./pages/Documentos";
 import Faq from "./pages/Faq";
-import Quemsomos from "./pages/Quemsomos";
 import Sobreoportal from "./pages/Sobreoportal";
 import Contatos from "./pages/Contatos";
+import Bbmassist from "./pages/Bbmassist";
 import Monitoramento from "./pages/Monitoramento";
 import DetalhesCentralizadora from "./components/DetalhesCentralizadora";
 import DetalhesResponsavel from "./components/DetalhesResponsavel";
@@ -28,8 +28,8 @@ function AppRoutes() {
       <Route path="/informacoes/politica" element={<Politicadeparceiros />} />
       <Route path="/informacoes/documentos" element={<Documentos />} />
       <Route path="/informacoes/faq" element={<Faq />} />
-      <Route path="/institucional/sobre" element={<Sobreoportal />} />
-      <Route path="/institucional/quemsomos" element={<Quemsomos />} />
+      <Route path="/sobre" element={<Sobreoportal />} />
+      <Route path="/bbmassist" element={<Bbmassist />} />
       <Route
         path="/detalhes-centralizadora"
         element={<DetalhesCentralizadora />}
