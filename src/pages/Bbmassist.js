@@ -332,11 +332,11 @@ export default function Bbmassist() {
       >
         <header className="bbm-chat-header">
           <div className="assistant-info">
-            <div className="assistant-avatar">BB</div>
+            <div className="assistant-avatar">BBM</div>
             <div>
               <div className="assistant-name">BBM Assist</div>
               <div className="assistant-status">
-                {isTyping ? "Digitando..." : "Online"}
+                <strong>{isTyping ? "Digitando..." : "Online"}</strong>
               </div>
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function Bbmassist() {
                 {m.role === "user" ? (
                   <div className="avatar-user">EU</div>
                 ) : (
-                  <div className="avatar-assistant">BB</div>
+                  <div className="avatar-assistant">BBM</div>
                 )}
               </div>
 
@@ -406,7 +406,7 @@ export default function Bbmassist() {
           {isTyping && (
             <div className="bbm-message from-assistant typing">
               <div className="msg-avatar">
-                <div className="avatar-assistant">BB</div>
+                <div className="avatar-assistant">BBM</div>
               </div>
               <div className="msg-body">
                 <div className="msg-bubble">
