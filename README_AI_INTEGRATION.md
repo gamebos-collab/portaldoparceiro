@@ -7,10 +7,10 @@
    - HF_TOKEN
 
 2. Instale dependências:
-   npm install pdf-parse mammoth tesseract.js @supabase/supabase-js node-fetch form-data
+   npm install formidable pdf-parse mammoth tesseract.js @supabase/supabase-js node-fetch form-data
 
 3. Rodar em dev:
-   npm run dev
+   npm start
 
 4. Acesse /chat para testar UI.
 5. Ajuste a função RPC match_documents no Supabase (veja instruções no painel SQL).
