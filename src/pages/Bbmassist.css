@@ -482,6 +482,57 @@ textarea:focus {
   font-weight: 700;
 }
 
+/* Name prompt modal styles (added) */
+.bbm-nameprompt-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2200;
+  background: rgba(4, 10, 28, 0.45);
+}
+
+.bbm-nameprompt {
+  width: 420px;
+  max-width: calc(100% - 40px);
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 20px 48px rgba(3, 32, 85, 0.12);
+  color: #072d4d;
+}
+
+.bbm-nameprompt h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.bbm-nameprompt p {
+  margin: 0 0 12px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.bbm-nameprompt input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(3, 32, 85, 0.06);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.bbm-nameprompt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bbm-nameprompt .btn-ghost {
+  padding: 8px 12px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1100px) {
   .bbmassist-page {

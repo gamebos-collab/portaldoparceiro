@@ -8,25 +8,26 @@ import {
   FaTrashAlt,
   FaSpinner,
   FaUserCircle,
+  FaEdit,
 } from "react-icons/fa";
 import "./Bbmassist.css";
 
 /**
  * Bbmassist Chat (UI inspirado no Microsoft Teams)
  *
- * Recursos implementados:
- * - Janela de conversa com cabeçalho (BBM Assist), histórico de mensagens
- * - Enviar mensagens de texto
- * - Enviar arquivos: imagens (preview in-line) e PDFs (link / thumbnail)
- * - Drag & drop de arquivos sobre a área de mensagem
- * - Rascunho persistido no localStorage (por aba)
- * - Simulação de resposta da IA (com "digitando..." e resposta por setTimeout) — substitua pela sua API
- * - Acessibilidade básica e visual fiel à paleta azul/amarelo já usada no projeto
+ * Implementações adicionadas:
+ * - leitura/uso do nome do usuário do dispositivo (quando disponível) / fallback para prompt.
+ * - substituição do rótulo "EU" pelo nome (iniciais) do usuário.
+ * - persistência do nome do usuário em localStorage.
+ * - botão para editar nome no painel direito.
+ * - preservado todo comportamento pré-existente (envio texto, anexos, drag&drop, persistência do chat).
  *
- * Uso: cole como src/pages/Bbmassist.js e o CSS (arquivo abaixo) como src/pages/Bbmassist.css
+ * Cole este arquivo substituindo o existente bbmassist-chat.js
  */
 
+/* keys/localStorage */
 const STORAGE_KEY = "bbmassist_chat_history_v1";
+const STORAGE_NAME_KEY = "bbm_user_name";
 
 function formatTime(ts = Date.now()) {
   const d = new Date(ts);
@@ -35,6 +36,76 @@ function formatTime(ts = Date.now()) {
 
 function makeId() {
   return Math.random().toString(36).slice(2, 9);
+}
+
+function initialsFromName(name) {
+  if (!name) return "EU";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+/* Tenta detectar um nome do usuário do dispositivo / ambiente */
+function detectDeviceUsername() {
+  try {
+    // 1) valor explicitamente injetado pela aplicação (recomendado em Electron)
+    if (typeof window !== "undefined" && window.__BBM_USERNAME__) {
+      const v = String(window.__BBM_USERNAME__);
+      if (v && v.trim()) return v.trim();
+    }
+
+    // 2) ambiente Node/Electron onde process.env pode estar acessível no renderer
+    if (typeof process !== "undefined" && process && process.env) {
+      const env = process.env;
+      const candidate = env.USERNAME || env.USER || env.LOGNAME;
+      if (candidate && candidate.trim()) return String(candidate).trim();
+    }
+
+    // 3) se o preload definiu uma prop específica (ex.: window.electronAPI)
+    if (
+      typeof window !== "undefined" &&
+      window.electronAPI &&
+      window.electronAPI.username
+    ) {
+      return String(window.electronAPI.username).trim();
+    }
+  } catch (e) {
+    // ignore - browsers will throw for process access etc.
+  }
+  return null;
+}
+
+/* Modal para pedir o nome do usuário (caso não detectado) */
+function NamePrompt({ defaultName, onSave, onCancel }) {
+  const [val, setVal] = useState(defaultName || "");
+  return (
+    <div className="bbm-nameprompt-overlay" role="dialog" aria-modal="true">
+      <div className="bbm-nameprompt">
+        <h3>Como deseja ser chamado?</h3>
+        <p>
+          Para personalizar a conversa, informe seu nome (será salvo
+          localmente).
+        </p>
+        <input
+          aria-label="Seu nome"
+          placeholder="Digite seu nome"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+        />
+        <div className="bbm-nameprompt-actions">
+          <button className="btn-ghost" onClick={() => onCancel && onCancel()}>
+            Cancelar
+          </button>
+          <button
+            className="btn-primary"
+            onClick={() => onSave(val.trim() || "Você")}
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Bbmassist() {
@@ -59,6 +130,21 @@ export default function Bbmassist() {
   const [isTyping, setIsTyping] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+
+  // user name detection / persistence
+  const [userName, setUserName] = useState(() => {
+    try {
+      const detected = detectDeviceUsername();
+      if (detected) return detected;
+    } catch {}
+    try {
+      const ls = localStorage.getItem(STORAGE_NAME_KEY);
+      if (ls) return ls;
+    } catch {}
+    return null;
+  });
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -77,6 +163,14 @@ export default function Bbmassist() {
   }, [messages]);
 
   useEffect(() => {
+    // if username not available, show prompt after small delay
+    if (!userName) {
+      const t = setTimeout(() => setShowNamePrompt(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [userName]);
+
+  useEffect(() => {
     // keyboard shortcut: Ctrl+Enter to send
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -85,7 +179,8 @@ export default function Bbmassist() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [input]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, messages, userName]);
 
   const pushMessage = (msg) => {
     setMessages((cur) => [...cur, msg]);
@@ -94,7 +189,10 @@ export default function Bbmassist() {
   const simulateAssistantReply = (userText, attachments = []) => {
     setIsTyping(true);
     // simulate "thinking/typing" time based on length
-    const delay = Math.min(2200 + userText.length * 20, 6000);
+    const delay = Math.min(
+      2200 + (userText ? userText.length * 20 : 400),
+      6000
+    );
 
     setTimeout(() => {
       // simple echo + metadata; replace with API call to AI
@@ -134,6 +232,7 @@ export default function Bbmassist() {
       text,
       time: Date.now(),
       attachments: [],
+      senderName: userName || "Você",
     };
     pushMessage(msg);
     setInput("");
@@ -173,6 +272,7 @@ export default function Bbmassist() {
           : input.trim() || "",
       time: Date.now(),
       attachments: processed,
+      senderName: userName || "Você",
     };
     pushMessage(msg);
     setInput("");
@@ -291,8 +391,29 @@ export default function Bbmassist() {
     );
   };
 
+  /* Save user name (persist) */
+  const saveUserName = (name) => {
+    const final = name && name.trim() ? name.trim() : null;
+    if (final) {
+      setUserName(final);
+      try {
+        localStorage.setItem(STORAGE_NAME_KEY, final);
+      } catch {}
+    }
+    setShowNamePrompt(false);
+  };
+
   return (
     <div className="bbmassist-page">
+      {/* Name prompt when name not detected */}
+      {showNamePrompt && !userName && (
+        <NamePrompt
+          defaultName=""
+          onSave={(v) => saveUserName(v || "Você")}
+          onCancel={() => setShowNamePrompt(false)}
+        />
+      )}
+
       <aside className="bbm-left">
         <div className="bbm-left-header">
           <div className="bbm-left-title">BBM Assist</div>
@@ -359,9 +480,19 @@ export default function Bbmassist() {
                 m.role === "user" ? "from-user" : "from-assistant"
               }`}
             >
-              <div className="msg-avatar" aria-hidden>
+              <div
+                className="msg-avatar"
+                aria-hidden
+                title={
+                  m.role === "user"
+                    ? m.senderName || userName || "Você"
+                    : "BBM Assist"
+                }
+              >
                 {m.role === "user" ? (
-                  <div className="avatar-user">EU</div>
+                  <div className="avatar-user">
+                    {initialsFromName(m.senderName || userName || "Você")}
+                  </div>
                 ) : (
                   <div className="avatar-assistant">BBM</div>
                 )}
@@ -483,7 +614,23 @@ export default function Bbmassist() {
 
       <aside className="bbm-right">
         <div className="bbm-right-card">
-          <h4>BBM Assist</h4>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <h4>BBM Assist</h4>
+            <button
+              title="Editar nome de usuário"
+              className="icon-edit"
+              onClick={() => setShowNamePrompt(true)}
+              aria-label="Editar nome"
+            >
+              <FaEdit />
+            </button>
+          </div>
           <p>
             BBM Assist é a inteligência artificial capaz de ajudar em análises
             de B.Os através do batepapo de envio de perguntas e respostas. Envie
