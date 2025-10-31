@@ -1,5 +1,6 @@
 import formidable from "formidable";
 import fs from "fs";
+import path from "path";
 import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 import Tesseract from "tesseract.js";
@@ -54,11 +55,19 @@ export default async function handler(req, res) {
     if (err) return res.status(500).json({ error: "Erro no upload" });
     try {
       const file = files.file;
-      const path = file.filepath || file.path;
+      const filePath = file.filepath || file.path;
       const mime = file.mimetype || file.type || "application/octet-stream";
       const originalName = file.originalFilename || file.name;
 
-      const text = await extractText(path, mime);
+      // Validate file path exists and is accessible
+      if (!filePath || !fs.existsSync(filePath)) {
+        return res.status(400).json({ error: "Arquivo inválido" });
+      }
+
+      // Ensure the path is absolute to prevent directory traversal
+      const absolutePath = path.resolve(filePath);
+      
+      const text = await extractText(absolutePath, mime);
       const chunks = text.match(/(.|[\r\n]){1,1200}/g) || [text];
 
       for (let i = 0; i < chunks.length; i++) {
