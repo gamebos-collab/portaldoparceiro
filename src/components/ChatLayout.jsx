@@ -19,22 +19,30 @@ export default function ChatLayout() {
     if (file) {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const j = await res.json();
-      setMessages((m) => [...m, { from: "user", text: `Enviei arquivo: ${file.name}` }, { from: "ai", text: j.message }]);
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const j = await res.json();
+        setMessages((m) => [...m, { from: "user", text: `Enviei arquivo: ${file.name}` }, { from: "ai", text: j.message || j.error || "Erro ao processar arquivo." }]);
+      } catch (err) {
+        setMessages((m) => [...m, { from: "user", text: `Enviei arquivo: ${file.name}` }, { from: "ai", text: "Erro ao enviar arquivo." }]);
+      }
       setFile(null);
       return;
     }
 
     setMessages((m) => [...m, { from: "user", text }]);
     setText("");
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-    });
-    const j = await res.json();
-    setMessages((m) => [...m, { from: "ai", text: j.reply }]);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const j = await res.json();
+      setMessages((m) => [...m, { from: "ai", text: j.reply || j.error || "Desculpe, não consegui gerar resposta." }]);
+    } catch (err) {
+      setMessages((m) => [...m, { from: "ai", text: "Erro ao processar mensagem." }]);
+    }
   }
 
   return (

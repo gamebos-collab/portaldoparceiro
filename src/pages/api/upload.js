@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       const mime = file.mimetype || file.type || "application/octet-stream";
       const originalName = file.originalFilename || file.name;
 
-      const text = await extractText(path, mime, originalName);
+      const text = await extractText(path, mime);
       const chunks = text.match(/(.|[\r\n]){1,1200}/g) || [text];
 
       for (let i = 0; i < chunks.length; i++) {
